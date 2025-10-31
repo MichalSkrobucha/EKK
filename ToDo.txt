@@ -1,30 +1,9 @@
 Must
-* Alicja
- ** wysyłanie impulsów
-  *** losowanie bazy, bitu, liczby fotonów
- ** wymiana baz z Bobem
-  *** przesianie poprawnych pomiarów
- ** ustalenie błędu z Bobem
-  *** wybór bitów do próbki
-  *** obliczenie błędu i odrzucenie transmisji
-
-* Kanał
- ** tłumienie
-
-* Bob
- ** odbieranie fotonów
-  *** losowy pomiar bazy, bitu
-  *** efektywność/error detektorów
- ** wymiana baz z Alicją
-  *** przesianie poprawnych pomiarów
- ** ustalenie błędu z Alicją
-  *** wybór bitów do próbki
-  *** obliczenie błędu i odrzucenie transmisji
-
 * Ewa
  ** /podsłuchiwanie/
-
-Should
+* Korekcja błędów
+* Kanał
+ ** zmiana bazy
 
 
 Could
