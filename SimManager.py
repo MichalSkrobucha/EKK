@@ -1,3 +1,4 @@
+import pandas as pd
 from Alice import Alice
 from Bob import Bob
 from Eve import Eve
@@ -91,13 +92,25 @@ class SimManager:
         # tu dodamy korektę błędów
 
     def printTable(self):
-        print(f"Alice bits        | {self.alice.bits}")
-        print(f"Alice bases       | {''.join(['+' if b == 0 else 'x' for b in self.alice.bases])}")
-        print(f"Bob bits          | {self.bob.bits}")
-        print(f"Bob bases         | {['+' if b == 0 else 'x' for b in self.bob.bases]}")
-        print(f"Bob sieved_bits   | {self.bob.sievedBits}")
-        print(f"Alice sieved_bits | {self.alice.sievedBits}")
-        print(f"Eve bits          | {self.eve.bits}")
-        print(f"Eve bases         | {['+' if b == 0 else 'x' for b in self.eve.bases]}")
-        print(f"Eve sieved_bits   | {self.eve.sieved_bits}")
+
+        alice_bases = ['+' if b == 0 else 'x' for b in self.alice.bases]
+        bob_bases = ['+' if b == 0 else 'x' for b in self.bob.bases]
+        eve_bases = ['+' if b == 0 else 'x' for b in self.eve.bases]
+        bobs_hits_bin = [x ^ y for x, y in zip(self.alice.bases, self.bob.bases)]
+        bobs_hits = ['✔' if x == 0 else 'X' for x in bobs_hits_bin]
+        key_bits = [x if y == 0 else '-' for x,y in zip(self.bob.bits, bobs_hits_bin)]
+
+        df = pd.DataFrame({
+            "Alice bits": self.alice.bits,
+            "Alice bases": alice_bases,
+            "Bob bases": bob_bases,
+            "Bob results": self.bob.bits,
+            "Bob hits": bobs_hits,
+            "Key bits": key_bits,
+            "Eve result": eve_bases,
+            "Eve bits": self.eve.bits
+        })
+        df = df.transpose()
+        df.to_csv("data/bb84_data.csv", index=False)
+        print("\n",df)
 
