@@ -16,7 +16,7 @@ class Photon:
         else:
             return randint(0, 1)
 
-    def eavsdrop(self, base: int) -> int:
+    def eavesdrop(self, base: int) -> int:
         # gdy ewa mierzy w złej bazie zmienia ją (na tą pomiarową) i bit (na losowy)
         if self.base != base:
             self.base = base

@@ -1,5 +1,6 @@
 from Alice import Alice
 from Bob import Bob
+from Eve import Eve
 from Channel import Channel
 from Logger import SimLogger
 
@@ -28,6 +29,7 @@ class SimManager:
     channel: Channel
     alice: Alice
     bob: Bob
+    eve: Eve
 
     def __init__(self):
         self.channel = Channel(self.dumpening, self.base_transform)
@@ -74,3 +76,8 @@ class SimManager:
 
         # błąd w akceptowalnych granicach
         # tu dodamy korektę błędów
+
+    def printTable(self):
+        bitsA = [p.bit for p in self.alice.message]
+        print(f"Alice | {bitsA}")
+        
