@@ -35,6 +35,7 @@ class SimManager:
         self.channel = Channel(self.dumpening, self.base_transform)
         self.alice = Alice(self.channel, 0.5)
         self.bob = Bob(self.channel, 0.99, 0.01)
+        self.eve = Eve(self.channel)
         logger.set_time(self.sim_start)
 
     def simLoop(self):
@@ -43,23 +44,34 @@ class SimManager:
                    f'Total rates are {self.dumpening_dB} dB of dumpening and {self.base_transform_per_km} dB of base_transform\n'
                    f'Probability of events (per photon) are {self.dumpening} for dumpening and {self.base_transform_per_km} for base_transform')
 
-
-
         for step in range(self.sim_start, self.sim_end, self.sim_step):
             # alicja wysła do boba impulsy fotonów (bity)
             print(f"=====================")
             logger.set_time(step)
 
             self.alice.send_key()
+
+            if self.ifEve:
+                self.eve.eavesdrop()
+
             self.bob.receive()
 
         # wymiana baz
-        self.bob.receiveBases(self.alice.sendBases())
-        self.alice.receiveBases((self.bob.sendBases()))
+        basesA: list[int] = self.alice.sendBases()
+        basesB: list[int] = self.bob.sendBases()
+
+        self.bob.receiveBases(basesA)
+        self.alice.receiveBases(basesB)
+
+        if self.ifEve:
+            self.eve.eavesdrop_bases(basesA, basesB)
 
         # przesiewanie
         self.bob.sieveBits()
         self.alice.sieveBits()
+
+        if self.ifEve:
+            self.eve.print_sieved_bits()
 
         # bob ustala któe bity są próbkowane
         self.alice.getSampleIds(self.bob.sendSampleIds())
@@ -70,14 +82,22 @@ class SimManager:
         self.alice.calculateQBER()
         self.bob.calculateQBER()
 
+        self.printTable()
+
         if self.bob.qber > self.qberThreshhold:
             logger.log("QBER exceeded threshhold. Ending transmission")
             return
-
         # błąd w akceptowalnych granicach
         # tu dodamy korektę błędów
 
     def printTable(self):
-        bitsA = [p.bit for p in self.alice.message]
-        print(f"Alice | {bitsA}")
-        
+        print(f"Alice bits        | {self.alice.bits}")
+        print(f"Alice bases       | {''.join(['+' if b == 0 else 'x' for b in self.alice.bases])}")
+        print(f"Bob bits          | {self.bob.bits}")
+        print(f"Bob bases         | {['+' if b == 0 else 'x' for b in self.bob.bases]}")
+        print(f"Bob sieved_bits   | {self.bob.sievedBits}")
+        print(f"Alice sieved_bits | {self.alice.sievedBits}")
+        print(f"Eve bits          | {self.eve.bits}")
+        print(f"Eve bases         | {['+' if b == 0 else 'x' for b in self.eve.bases]}")
+        print(f"Eve sieved_bits   | {self.eve.sieved_bits}")
+

@@ -1,12 +1,9 @@
 Must
-* Ewa
- ** /podsłuchiwanie/
 * Korekcja błędów
-* Kanał
- ** zmiana bazy
-
 
 Could
 * Estetyka
- ** anotacja typów
- ** docstringi
+ ** anotacja typów - Michał
+ ** docstringi - Michał
+ ** wykresy błędu (zależnie od ewy, dumpening, base_transform, bob.error, bob.efficinecy) - Natalia
+ ** dataframe z wynikami - Natalia

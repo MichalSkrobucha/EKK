@@ -66,7 +66,7 @@ class Alice:
             if a == b:
                 self.sievedBits.append(bit)
 
-        logger.log(f"Alice sieved her measurments (based on her and Bob's bases) {self.sievedBits} and got {len(self.sievedBits)} bits")
+        logger.log(f"Alice sieved her measurments (based on her and Bob's bases) and got {len(self.sievedBits)} bits: {self.sievedBits}")
 
     def getSampleIds(self, sampleIds: list[int]) -> None:
         self.sampleIds = sampleIds

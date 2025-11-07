@@ -1,6 +1,6 @@
 from Logger import SimLogger
 from Photon import Photon
-from random import random, getrandbits
+from random import random, randint
 
 logger = SimLogger()
 
@@ -33,7 +33,18 @@ class Channel:
             if random() > self.base_transform:
                 trasmitted_transformed.append(p)
             else:
-                trasmitted_transformed.append(Photon(1 - p.base, getrandbits(1)))
+                trasmitted_transformed.append(Photon(1 - p.base, randint(0, 1)))
 
         logger.log(f"Channel output: {len(trasmitted_transformed)} photons have been read")
         return trasmitted_transformed
+
+    def eavesdrop(self, base: int) -> int:
+        # Ewa mierzy foton i wysyła go dalej
+        # dla uproszczenia symulacji, foton nie opuszcza pakietu
+        if len(self.container) > 0:
+            p : Photon = self.container[0]
+            bit: int = p.eavesdrop(base)
+            return bit
+        else:
+            return -1
+
