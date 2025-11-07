@@ -20,6 +20,6 @@ class Photon:
         # gdy ewa mierzy w złej bazie zmienia ją (na tą pomiarową) i bit (na losowy)
         if self.base != base:
             self.base = base
-            self.bit = randint(0,1)
+            self.bit = randint(0, 1)
+        return self.bit
 
-        return self.base
