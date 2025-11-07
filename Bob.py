@@ -12,14 +12,13 @@ logger = SimLogger()
 class Bob:
     channel: Channel
 
-    def __init__(self,channel: Channel, efficinecy:float, error: float) -> None:
+    def __init__(self, channel: Channel, efficiency: float, error: float) -> None:
         """
         efficinecy - kilka jak przyjdzie
         error - klika jak nie przyjdzie
         """
         self.channel = channel
-
-        self.efficinecy = efficinecy
+        self.efficiency = efficiency
         self.error = error
         self.bases: list[int] = []
         self.bits: list[int] = []
@@ -43,7 +42,7 @@ class Bob:
             bit: int = p.measure(base)
 
             # czy dobry detektor kliknie
-            measurments[base][bit] += binomialvariate(p=self.efficinecy)
+            measurments[base][bit] += binomialvariate(p=self.efficiency)
 
         # error (fałszywe kliknięcia) - może kliknąć tylko jak nie kliknęło poprawnie na dobry foton
         # może się zdarzyć, że na detektor przyszedł foton, nie kliknęło (pech na efficinecy), ale klikęło na error

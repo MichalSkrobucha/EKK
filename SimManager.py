@@ -16,6 +16,7 @@ class SimManager:
     sim_end: int = 1000
     qberThreshhold: float = 0.2
     ifEve: bool = True
+    logs: bool = True
 
     channel_length : float = 1.0 #km
     dumpening_per_km : float = 0.2 # dB/ km
@@ -32,12 +33,13 @@ class SimManager:
     bob: Bob
     eve: Eve
 
-    def __init__(self):
+    def __init__(self, logs: bool = True):
         self.channel = Channel(self.dumpening, self.base_transform)
         self.alice = Alice(self.channel, 0.5)
         self.bob = Bob(self.channel, 0.99, 0.01)
         self.eve = Eve(self.channel)
         logger.set_time(self.sim_start)
+
 
     def simLoop(self):
         logger.log(f'\nSimulating channel of length {self.channel_length} km\n'
@@ -47,7 +49,7 @@ class SimManager:
 
         for step in range(self.sim_start, self.sim_end, self.sim_step):
             # alicja wysła do boba impulsy fotonów (bity)
-            print(f"=====================")
+            logger.msg(f"=====================")
             logger.set_time(step)
 
             self.alice.send_key()
@@ -82,8 +84,6 @@ class SimManager:
         # obliczanie błędu
         self.alice.calculateQBER()
         self.bob.calculateQBER()
-
-        self.printTable()
 
         if self.bob.qber > self.qberThreshhold:
             logger.log("QBER exceeded threshhold. Ending transmission")
