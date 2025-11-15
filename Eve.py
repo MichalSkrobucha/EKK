@@ -10,14 +10,28 @@ class Eve:
     channel: Channel
 
     def __init__(self, channel: Channel):
+        """
+        :param channel: Channel on which Alice and Bob are communicating
+        """
         self.channel = channel
-        self.bits : list[int] = []
+        self.bits: list[int] = []
         self.bases: list[int] = []
-        self.sieved_bits : list[int] = []
+        self.sieved_bits: list[int] = []
 
-    def eavesdrop(self):
+    def clearLists(self) -> None:
+        """
+        Empties all lists
+        """
+        self.bits.clear()
+        self.bases.clear()
+        self.sieved_bits.clear()
+
+    def eavesdrop(self) -> None:
+        """
+        Eavesdrops on impulse ALice sent to Bob
+        """
         logger.log('Eve eavesdrops on transmission')
-        base: int = randint(0,1)
+        base: int = randint(0, 1)
         bit = self.channel.eavesdrop(base)
 
         self.bases.append(base)
@@ -28,14 +42,20 @@ class Eve:
         else:
             logger.log('Eve couldn\'t make a measurment')
 
-    def eavesdrop_bases(self, basesA: list[int], basesB: list[int]):
+    def eavesdrop_bases(self, basesA: list[int], basesB: list[int]) -> None:
+        """
+        Eavesdrops on base exchange (and sieves her bits)
+        :param basesA: Alice's basis
+        :param basesB: Bob;s basis
+        """
         logger.log('Eve is eavesdropping on base exchange')
-        for (a,b, bit) in zip(basesA, basesB, self.bits):
+        for (a, b, bit) in zip(basesA, basesB, self.bits):
             if a == b:
                 self.sieved_bits.append(bit)
 
-    def print_sieved_bits(self):
+    def print_sieved_bits(self) -> None:
+        """
+        Prints bits Eve has sieved (for debug)
+        """
         logger.log(f'Eve has {len(self.sieved_bits)} bits: {self.sieved_bits}')
         logger.log(f'Out of which she does not know {len([p for p in self.sieved_bits if p == -1])} of them')
-
-

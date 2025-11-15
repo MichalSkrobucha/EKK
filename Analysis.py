@@ -6,10 +6,14 @@ from SimManager import SimManager
 logger = SimLogger()
 
 
-def eveDependenceAnalysis(simManager: SimManager):
-    n = 10
+def eveDependenceAnalysis(simManager: SimManager, n: int = 10) -> None:
+    """
+    Simulates QKD without/with Eve and shows average QBERs for both
+    :param simManager: simulation Manager
+    :param n: How many simulations for each scenario
+    """
 
-    # Bez Ewy
+    # Withuot Eve
     simManager.__init__()
     avgQberWithoutEve: float = 0
     simManager.ifEve = False
@@ -19,10 +23,9 @@ def eveDependenceAnalysis(simManager: SimManager):
     for i in range(n):
         simManager.simLoop()
         avgQberWithoutEve += simManager.bob.qber
+        simManager.clearLists()
 
-    logger.important(f"Average QBER without Eve: {avgQberWithoutEve/n}")
-
-    # # Z Ewą
+    # With Eve
     simManager.__init__()
     avgQberWithEve: float = 0
     simManager.ifEve = True
@@ -30,8 +33,10 @@ def eveDependenceAnalysis(simManager: SimManager):
     for i in range(n):
         simManager.simLoop()
         avgQberWithEve += simManager.bob.qber
+        simManager.clearLists()
 
-    logger.important(f"Average QBER with Eve: {avgQberWithEve/n}")
+    logger.important(f"Average QBER without Eve: {avgQberWithoutEve / n}")
+    logger.important(f"Average QBER with Eve: {avgQberWithEve / n}")
 
 
 def dumpeningAnalysis(simManager: SimManager):

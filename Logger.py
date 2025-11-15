@@ -5,7 +5,11 @@ import logging
 class SimLogger:
     _instance = None
 
-    def __new__(cls, sim_start: int = 0):  # Singleton
+    def __new__(cls, sim_start: int = 0):
+        """
+        Creates single instance of class (only instace for simulation)
+        :param sim_start: what is initial time of simulation
+        """
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.sim_time = sim_start
@@ -49,7 +53,7 @@ class SimLogger:
         self.use_plain = plain
         self._update_handlers()
 
-    def enable_logger(self,enabled: bool = True) -> None:
+    def enable_logger(self, enabled: bool = True) -> None:
         if enabled:
             self.logger.setLevel(logging.DEBUG)
         else:
@@ -58,7 +62,7 @@ class SimLogger:
     def set_time(self, time: int) -> None:
         self.sim_time = time
 
-    def msg(self,msg: str, **kwargs) -> None:
+    def msg(self, msg: str, **kwargs) -> None:
         self.use_plain_format(True)
         self.logger.info(msg, **kwargs)
 

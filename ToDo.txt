@@ -3,6 +3,5 @@ Must
 
 Could
 * Estetyka
- ** anotacja typów - Michał
- ** docstringi - Michał
  ** wykresy błędu (zależnie od ewy, dumpening, base_transform, bob.error, bob.efficinecy) - Natalia
+ ** docstringi i type-annotation w Logger - Michał

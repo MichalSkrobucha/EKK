@@ -1,15 +1,16 @@
-from Logger import SimLogger
-import logging
-from SimManager import SimManager
 from Analysis import *
 
 logger = SimLogger()
 
 
 def main() -> None:
-    simManager = SimManager()
-    logger.enable_logger(False)  # Wyłącznie logów
-    eveDependenceAnalysis(simManager)
+    """
+    Runs the simulation
+    """
+    simManager: SimManager = SimManager()
+    logger.enable_logger(True)  # Wyłącznie logów
+    eveDependenceAnalysis(simManager, 30)
+
 
 if __name__ == '__main__':
     main()
