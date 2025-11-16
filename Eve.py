@@ -14,8 +14,8 @@ class Eve:
         :param channel: Channel on which Alice and Bob are communicating
         """
         self.channel = channel
-        self.bits: list[int] = []
-        self.bases: list[int] = []
+        self.bits: list[list[int]] = []
+        self.bases: list[list[int]] = []
         self.sieved_bits: list[int] = []
 
     def clearLists(self) -> None:
@@ -32,15 +32,22 @@ class Eve:
         """
         logger.log('Eve eavesdrops on transmission')
         base: int = randint(0, 1)
-        bit = self.channel.eavesdrop(base)
 
-        self.bases.append(base)
-        self.bits.append(bit)
+        bases: list[int]
+        bits: list[int]
 
-        if bit >= 0:
-            logger.log(f'Eve measured photon in base {base} and got bit {bit}')
-        else:
-            logger.log('Eve couldn\'t make a measurment')
+        (bases,bits) = self.channel.eavesdrop(base)
+
+        self.bases.append(bases)
+        self.bits.append(bits)
+
+        logger.log(f'Eve eavesdrops on transmission and measured {len(bases)} photons')
+
+        for (base, bit) in zip(bases, bits):
+            if bit >= 0:
+                logger.log(f'Eve measured photon in base {base} and got bit {bit}')
+            else:
+                logger.log('Eve couldn\'t make a measurment')
 
     def eavesdrop_bases(self, basesA: list[int], basesB: list[int]) -> None:
         """
@@ -49,9 +56,12 @@ class Eve:
         :param basesB: Bob;s basis
         """
         logger.log('Eve is eavesdropping on base exchange')
-        for (a, b, bit) in zip(basesA, basesB, self.bits):
+        for (a, b, bases, bits) in zip(basesA, basesB, self.bases, self.bits):
             if a == b:
-                self.sieved_bits.append(bit)
+                for (base, bit) in zip(bases, bits):
+                    if base == a:
+                        self.sieved_bits.append(bit)
+                        break
 
     def print_sieved_bits(self) -> None:
         """

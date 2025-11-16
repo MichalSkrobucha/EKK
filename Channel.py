@@ -19,20 +19,13 @@ class Channel:
 
     def send(self, photons: list[Photon]) -> None:
         """
-        Adds list of photons (impulse) to channel
+        Adds list of photons (impulse) to channel (where they are (optionally) dumpened and their basis are transformed)
         :param photons: Alice's photon impulse
         """
         self.container.clear()
-        self.container.extend(photons)
-        logger.log(f"Channel received {len(self.container)} photons")
 
-    def read(self) -> list[Photon]:
-        """
-        Return list of photons (after dumpening and change of base)
-        :return modified impulse
-        """
         # dumpening
-        transmited: list[Photon] = [p for p in self.container if random() > self.dumpening]
+        transmited: list[Photon] = [p for p in photons if random() > self.dumpening]
 
         # base change
         trasmitted_transformed: list[Photon] = []
@@ -42,20 +35,54 @@ class Channel:
             else:
                 trasmitted_transformed.append(Photon(1 - p.base, randint(0, 1)))
 
-        logger.log(f"Channel output: {len(trasmitted_transformed)} photons have been read")
-        return trasmitted_transformed
+        self.container.extend(trasmitted_transformed)
 
-    def eavesdrop(self, base: int) -> int:
+        logger.log(f"Channel received {len(self.container)} photons")
+
+    def read(self) -> list[Photon]:
+        """
+        Return list of photons
+        :return modified impulse
+        """
+        logger.log(f"Channel output: {len(self.container)} photons have been read")
+        return list(self.container)
+
+    def eavesdrop(self, base: int) -> tuple[list[int], list[int]]:
         """
         Eavesdrops on channel (measurment with possible base change if done in incorrect base)
-        :param base: bas ein which Eve eavesdrop on impulse
-        :return: photon's bit (change if measured in wrong base)
+        :param base: bas ein which Eve eavesdrop on impulse (if there is only 1 photon)
+        :return: tuple(bases, bits)
+            bases - bases in which photonsd are measured
+            bits - measured bits
         """
         # Eaves measures photon and send it
         # To simplify simulation photon does not leave list (impulse)
-        if len(self.container) > 0:
-            p: Photon = self.container[0]
-            bit: int = p.eavesdrop(base)
-            return bit
-        else:
-            return -1
+
+        # self.container
+
+        bases: list[int] = []
+        bits: list[int] = []
+
+        match len(self.container):
+            case 0:
+                bases.append(-1)
+                bits.append(-1)
+            case 1:
+                photon: Photon = self.container[0]
+                bases.append(base)
+                bits.append(photon.eavesdrop(base))
+            case 2:
+                photon: Photon = self.container.pop()
+                bases.append(base)
+                bits.append(photon.eavesdrop(base))
+                bases.append(1 - base)
+                bits.append(self.container[0].eavesdrop(1 - base))
+            case _:
+                photonA : Photon = self.container.pop()
+                photonB : Photon = self.container.pop()
+                bases.append(base)
+                bits.append(photonA.eavesdrop(base))
+                bases.append(1 - base)
+                bits.append(photonB.eavesdrop(1 - base))
+
+        return (bases, bits)
