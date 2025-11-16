@@ -22,7 +22,6 @@ class Channel:
         Adds list of photons (impulse) to channel (where they are (optionally) dumpened and their basis are transformed)
         :param photons: Alice's photon impulse
         """
-        self.container.clear()
 
         # dumpening
         transmited: list[Photon] = [p for p in photons if random() > self.dumpening]
@@ -30,10 +29,10 @@ class Channel:
         # base change
         trasmitted_transformed: list[Photon] = []
         for p in transmited:
-            if random() > self.base_transform:
-                trasmitted_transformed.append(p)
-            else:
-                trasmitted_transformed.append(Photon(1 - p.base, randint(0, 1)))
+            if random() < self.base_transform:
+                p.base = 1 - p.base
+                p.bit = randint(0, 1)
+            trasmitted_transformed.append(p)
 
         self.container.extend(trasmitted_transformed)
 
@@ -44,8 +43,10 @@ class Channel:
         Return list of photons
         :return modified impulse
         """
-        logger.log(f"Channel output: {len(self.container)} photons have been read")
-        return list(self.container)
+        read_container = self.container.copy()
+        self.container.clear()
+        logger.log(f"Channel output: {len(read_container)} photons have been read")
+        return read_container
 
     def eavesdrop(self, base: int) -> tuple[list[int], list[int]]:
         """
@@ -78,11 +79,11 @@ class Channel:
                 bases.append(1 - base)
                 bits.append(self.container[0].eavesdrop(1 - base))
             case _:
-                photonA : Photon = self.container.pop()
-                photonB : Photon = self.container.pop()
+                photonA: Photon = self.container.pop()
+                photonB: Photon = self.container.pop()
                 bases.append(base)
                 bits.append(photonA.eavesdrop(base))
                 bases.append(1 - base)
                 bits.append(photonB.eavesdrop(1 - base))
 
-        return (bases, bits)
+        return bases, bits

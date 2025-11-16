@@ -246,6 +246,9 @@ class Bob:
         for (a, b) in zip(self.aliceSample, self.bobSample):
             difference += a ^ b
 
-        self.qber: float = difference / len(self.aliceSample)
+        try:
+            self.qber: float = difference / len(self.aliceSample)
+        except ZeroDivisionError:
+            logger.error(f"ZeroDivisionError")
 
         logger.log(f"Bob is calculating QBER: {self.qber}")

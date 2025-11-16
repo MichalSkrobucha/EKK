@@ -32,11 +32,17 @@ class SimManager:
     eve: Eve
 
     def __init__(self):
+        self.reloadBaseValues()
         self.channel = Channel(self.dumpening, self.base_transform)
         self.alice = Alice(self.channel, 0.5)
         self.bob = Bob(self.channel, 0.99, 0.01)
         self.eve = Eve(self.channel)
         logger.set_time(self.sim_start)
+
+    def reloadBaseValues(self):
+        self.channel_length: float = 1.0  # km
+        self.dumpening_per_km: float = 0.2  # dB/ km
+        self.base_transform_per_km: float = 0.2  # db / km
 
     def clearLists(self) -> None:
         """
@@ -67,6 +73,7 @@ class SimManager:
 
             self.bob.receive()
 
+        logger.msg(f"=====================")
         # Basis exchange
         basesA: list[int] = self.alice.sendBases()
         basesB: list[int] = self.bob.sendBases()
