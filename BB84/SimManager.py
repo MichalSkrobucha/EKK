@@ -1,8 +1,8 @@
 import pandas as pd
-from Alice import Alice
-from Bob import Bob
-from Eve import Eve
-from Channel import Channel
+from BB84.Alice import Alice
+from BB84.Bob import Bob
+from BB84.Eve import Eve
+from BB84.Channel import Channel
 from Logger import SimLogger
 
 logger = SimLogger()

@@ -1,7 +1,4 @@
-from Logger import SimLogger
-import logging
-from SimManager import SimManager
-from Analysis import *
+from SARG04.Analysis import *
 
 logger = SimLogger()
 
@@ -15,7 +12,7 @@ def main() -> None:
     # Simulation test
     simManager.simLoop()
     simManager.printTable()
-
+    #
     # Analysis
     logger.enable_logger(False)  # Wyłącznie logów
     eveDependenceAnalysis(simManager, 30)
