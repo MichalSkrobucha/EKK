@@ -2,6 +2,7 @@ from random import randint
 
 from Channel import Channel
 from Logger import SimLogger
+from Photon import Photon
 
 logger = SimLogger()
 
@@ -18,6 +19,9 @@ class Eve:
         self.bases: list[list[int]] = []
         self.sieved_bits: list[int] = []
 
+        self.photons : list[Photon|None] = []
+        self.after_sieving = False
+
     def clearLists(self) -> None:
         """
         Empties all lists
@@ -26,28 +30,47 @@ class Eve:
         self.bases.clear()
         self.sieved_bits.clear()
 
+        self.photons.clear()
+
     def eavesdrop(self) -> None:
         """
         Eavesdrops on impulse ALice sent to Bob
         """
-        logger.log('Eve eavesdrops on transmission')
-        base: int = randint(0, 1)
 
-        bases: list[int]
-        bits: list[int]
+        if self.after_sieving:
+            container : list[Photon] = self.channel.container
 
-        (bases,bits) = self.channel.eavesdrop(base)
+            match len(container):
+                case 0:
+                    logger.log('Eve detected no photons on channel')
+                    self.photons.append(None)
+                case 1:
+                    logger.log('Eve detected only one photon on channel - it will not pass')
+                    container.clear()
+                    self.photons.append(None)
+                case _:
+                    logger.log('Eve detected many photons on channel - she keeps one')
+                    self.photons.append(container.pop())
 
-        self.bases.append(bases)
-        self.bits.append(bits)
+        else:
+            logger.log('Eve eavesdrops on transmission')
+            base: int = randint(0, 1)
 
-        logger.log(f'Eve eavesdrops on transmission and measured {len(bases)} photons')
+            bases: list[int]
+            bits: list[int]
 
-        for (base, bit) in zip(bases, bits):
-            if bit >= 0:
-                logger.log(f'Eve measured photon in base {base} and got bit {bit}')
-            else:
-                logger.log('Eve couldn\'t make a measurment')
+            (bases,bits) = self.channel.eavesdrop(base)
+
+            self.bases.append(bases)
+            self.bits.append(bits)
+
+            logger.log(f'Eve eavesdrops on transmission and measured {len(bases)} photons')
+
+            for (base, bit) in zip(bases, bits):
+                if bit >= 0:
+                    logger.log(f'Eve measured photon in base {base} and got bit {bit}')
+                else:
+                    logger.log('Eve couldn\'t make a measurment')
 
     def eavesdrop_bases(self, basesA: list[int], basesB: list[int]) -> None:
         """
@@ -55,13 +78,23 @@ class Eve:
         :param basesA: Alice's basis
         :param basesB: Bob;s basis
         """
+
         logger.log('Eve is eavesdropping on base exchange')
-        for (a, b, bases, bits) in zip(basesA, basesB, self.bases, self.bits):
-            if a == b:
-                for (base, bit) in zip(bases, bits):
-                    if base == a:
-                        self.sieved_bits.append(bit)
-                        break
+
+        if self.after_sieving:
+            for (a, b, ph) in zip(basesA, basesB, self.photons):
+                if a == b:
+                    if ph is not None:
+                        self.sieved_bits.append(ph.measure(a))
+                    else:
+                        self.sieved_bits.append(-1)
+        else:
+            for (a, b, bases, bits) in zip(basesA, basesB, self.bases, self.bits):
+                if a == b:
+                    for (base, bit) in zip(bases, bits):
+                        if base == a:
+                            self.sieved_bits.append(bit)
+                            break
 
     def print_sieved_bits(self) -> None:
         """
