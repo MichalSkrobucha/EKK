@@ -4,6 +4,7 @@ from E91.Channel import Channel
 from E91.Source import Source
 from Logger import SimLogger
 import math
+from itertools import combinations
 import numpy as np
 
 logger = SimLogger()
@@ -82,7 +83,7 @@ class SimManager:
                 raw_key_bob.append(1 - b['bit'])
 
             # BELL TEST - CHSH inequality
-            # Zliczamy korelacje dla wszystkich kombinacji
+            # Zliczanie korelacji dla wszystkich kombinacji
             if pair_key not in stats:
                 stats[pair_key] = {'same': 0, 'diff': 0}
 
@@ -133,21 +134,36 @@ class SimManager:
             delta = theta_A - theta_B
             return -math.cos(2 * delta)
 
-        val_A1_B1 = get_theoretical_E(self.alice.bases[1], self.bob.bases[1])
-        val_A1_B3 = get_theoretical_E(self.alice.bases[1], self.bob.bases[3])
-        val_A3_B1 = get_theoretical_E(self.alice.bases[3], self.bob.bases[1])
-        val_A3_B3 = get_theoretical_E(self.alice.bases[3], self.bob.bases[3])
+        def get_S_for_pair(base_idx_1, base_idx_2):
+            val_A1_B1 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_1])
+            val_A1_B2 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_2])
+            val_A2_B1 = get_theoretical_E(self.alice.bases[base_idx_2], self.bob.bases[base_idx_1])
+            val_A2_B2 = get_theoretical_E(self.alice.bases[base_idx_2], self.bob.bases[base_idx_2])
 
-        print(f"E(A1, B1) [{self.alice.bases[1]} vs {self.bob.bases[1]}]  = {val_A1_B1:.4f}")
-        print(f"E(A1, B3) [{self.alice.bases[1]} vs {self.bob.bases[3]}]  = {val_A1_B3:.4f}")
-        print(f"E(A3, B1) [{self.alice.bases[3]} vs {self.bob.bases[1]}] = {val_A3_B1:.4f}")
-        print(f"E(A3, B3) [{self.alice.bases[3]} vs {self.bob.bases[3]}] = {val_A3_B3:.4f}")
+            print(f"E(A{base_idx_1}, B{base_idx_1}) [{self.alice.bases[base_idx_1]} vs {self.bob.bases[base_idx_1]}]  = {val_A1_B1:.4f}")
+            print(f"E(A{base_idx_1}, B{base_idx_2}) [{self.alice.bases[base_idx_1]} vs {self.bob.bases[base_idx_2]}]  = {val_A1_B2:.4f}")
+            print(f"E(A{base_idx_2}, B{base_idx_1}) [{self.alice.bases[base_idx_2]} vs {self.bob.bases[base_idx_1]}] = {val_A2_B1:.4f}")
+            print(f"E(A{base_idx_2}, B{base_idx_2}) [{self.alice.bases[base_idx_2]} vs {self.bob.bases[base_idx_2]}] = {val_A2_B2:.4f}")
 
-        # S = |E(A1, B1) - E(A1, B3) + E(A3, B1) + E(A3, B3)|
-        S_theoretical = abs(val_A1_B1 - val_A1_B3 + val_A3_B1 + val_A3_B3)
-        print(f"\nTeoretyczne S = {S_theoretical:.5f}")
+            # S = |E(A1, B1) - E(A1, B3) + E(A3, B1) + E(A3, B3)|
+            S_theoretical = abs(val_A1_B1 - val_A1_B2 + val_A2_B1 + val_A2_B2)
+            print(f"Teoretyczne S ({self.alice.bases[base_idx_1]},{self.alice.bases[base_idx_2]}) = {S_theoretical:.5f}\n")
+            return S_theoretical
 
-        if S_theoretical > 2:
+        def find_max_S():
+            indices = [1, 2, 3]
+            results = {}
+            for idx1, idx2 in combinations(indices, 2):
+                s_val = get_S_for_pair(idx1, idx2)
+                results[(idx1, idx2)] = s_val
+
+            best_pair = max(results, key=results.get)
+            max_S = results[best_pair]
+            print(f"\n>>> ZWYCIĘZCA: Para indeksów {best_pair}")
+            print(f">>> Maksymalne S = {max_S:.5f}")
+            return max_S
+
+        if find_max_S() > 2:
             print("\n>> SUKCES: Wynik łamie nierówność Bella.")
         else:
             print("\n>> UWAGA: Coś nie tak z kątami.")
