@@ -1,4 +1,4 @@
-from SARG04.Analysis import *
+from BB84.Analysis import *
 
 logger = SimLogger()
 
@@ -9,11 +9,9 @@ def main() -> None:
     """
     simManager: SimManager = SimManager()
     logger.enable_logger(True)  # Włączenie logów
-    # Simulation test
-    simManager.eve.after_sieving = True
-    simManager.alice.mi = 1.0
     simManager.simLoop()
-    # simManager.printTable()
+    simManager.printTable()
+    simManager.checkCorrectness()
     #
     # Analysis
     # logger.enable_logger(False)  # Wyłącznie logów

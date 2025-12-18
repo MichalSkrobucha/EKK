@@ -1,7 +1,10 @@
-Must
-* Korekcja błędów
-
-Could
-* Estetyka
- ** wykresy błędu (zależnie od ewy, dumpening, base_transform, bob.error, bob.efficinecy) - Natalia
- ** docstringi i type-annotation w Logger - Michał
+* Object-Oriented
+ ** Analysis
+ ** Error-Correction & Privacy Amplification
+ ** SimManager
+ ** Photon
+ ** Source ?
+ ** Channel
+ ** Alice
+ ** Bob
+ ** Eve

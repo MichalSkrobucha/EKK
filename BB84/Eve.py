@@ -19,7 +19,7 @@ class Eve:
         self.bases: list[list[int]] = []
         self.sieved_bits: list[int] = []
 
-        self.photons : list[Photon|None] = []
+        self.photons: list[Photon | None] = []
         self.after_sieving = False
 
     def clearLists(self) -> None:
@@ -38,7 +38,7 @@ class Eve:
         """
 
         if self.after_sieving:
-            container : list[Photon] = self.channel.container
+            container: list[Photon] = self.channel.container
 
             match len(container):
                 case 0:
@@ -59,7 +59,7 @@ class Eve:
             bases: list[int]
             bits: list[int]
 
-            (bases,bits) = self.channel.eavesdrop(base)
+            (bases, bits) = self.channel.eavesdrop(base)
 
             self.bases.append(bases)
             self.bits.append(bits)
@@ -90,11 +90,18 @@ class Eve:
                         self.sieved_bits.append(-1)
         else:
             for (a, b, bases, bits) in zip(basesA, basesB, self.bases, self.bits):
+
+                # Eve knows Alice and Bob will use this bit to make key
                 if a == b:
+                    # She looks through her list to find matching one
                     for (base, bit) in zip(bases, bits):
+                        # She found one of matching base
                         if base == a:
                             self.sieved_bits.append(bit)
                             break
+                    # She does not have matching base (unknown bit)
+                    else:
+                        self.sieved_bits.append(-1)
 
     def print_sieved_bits(self) -> None:
         """
