@@ -50,11 +50,6 @@ class Source:
     def generate(self):
         photons: list[Photon] = [Photon() for _ in range(self.n)]
         controller: Entanglemet_Controller = Entanglemet_Controller(photons, self.roll_for_distribution())
+        # controller adds itself as reference to each photon - do not remove
 
         return tuple(photons)
-
-        # photon_1 = Photon()
-        # photon_2 = Photon()
-        # photon_1.set_entangled_pair(photon_2)
-        # logger.log("Source generated pair of entangled photons")
-        # return photon_1, photon_2
