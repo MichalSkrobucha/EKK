@@ -1,10 +1,18 @@
-* Object-Oriented
+* Object-Oriented (BB84, E91, SARG04)
  ** Analysis
- ** Error-Correction & Privacy Amplification
+ ** Error-Correction ( & Privacy Amplification)
  ** SimManager
- ** Photon
- ** Source ?
+ ** Photon ( & Source)
  ** Channel
  ** Alice
  ** Bob
  ** Eve
+
+* E91
+ ** 3-Qubit attack
+
+* BB84
+ ** Decoy-States
+
+* ANalysis
+ ** Zero-Division-Error
