@@ -39,7 +39,7 @@ class SimManager:
             logger.msg(f"=====================")
             logger.set_time(step)
             # Generating pair
-            photon_A, photon_B = source.generate_pair()
+            photon_A, photon_B = source.generate()
             self.channel_alice.send([photon_A])
             self.channel_bob.send([photon_B])
 

@@ -14,5 +14,5 @@
 * BB84
  ** Decoy-States
 
-* ANalysis
+* Analysis
  ** Zero-Division-Error
