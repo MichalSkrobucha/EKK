@@ -1,10 +1,14 @@
 from hashlib import sha256
 from math import ceil
 
+
 class bob:
     def __init__(self, bits: list[int], q: float = 0.25):
         self.bits = bits
         self.i = 0
+
+        self.permutation: list[int] = []
+        self.alice_hash: bytes = bytes()
 
         self.blocks: list[list[int]] = []
         self.bob_parities: list[int] = []
@@ -13,6 +17,8 @@ class bob:
 
     def get_alice_permutation(self, permutation: list[int]):
         """Bob odbiera permutację Alicji i dzieli permutuje swój klucz"""
+        self.permutation = permutation
+
         self.bits = [self.bits[i] for i in permutation]
 
     def split_into_blocks(self) -> None:
@@ -51,13 +57,24 @@ class bob:
         """Bob zamienia swoje bloki na bity"""
         self.bits = [bit for block in self.blocks for bit in block]
 
-    def get_key_hash(self, alice_hash: bytes) -> bool:
+    def get_key_hash(self, alice_hash: bytes) -> None:
         """Bob odbiera hash klucza Alicji i wysyła czy zgadza się z jego kluczem"""
-        return alice_hash == sha256(bytes.fromhex(
+        self.alice_hash = alice_hash
+
+    def check_hash(self) -> bool:
+        return self.alice_hash == sha256(bytes.fromhex(
             ''.join([hex(num)[2:] for num in
                      [sum([x * 2 ** i for (i, x) in enumerate(halfbyte)]) for halfbyte in
                       [self.bits[i: min(len(self.bits), i + 4)] for i in
                        range(0, len(self.bits), 4)]]]))).digest()
+
+    def unpermute(self):
+        bits: list[int] = [0 for _ in self.bits]
+
+        for (new, old) in enumerate(self.permutation):
+            bits[old] = self.bits[new]
+
+        self.bits = bits
 
     def privacy_amplification(self) -> None:
         """Wzmocnienie prywatności"""

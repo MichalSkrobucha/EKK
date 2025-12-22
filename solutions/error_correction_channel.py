@@ -31,6 +31,12 @@ class channel:
 
         # korekcja błędów
         # Alicja i Bob wymieniają się informacjami, ewa słucha (w teorii - brak wywołań funkcji)
+
+        # Alicja wysyła klucz
+        alice_key_hash = alice.send_key_hash()
+        bob.get_key_hash(alice_key_hash)
+        print(f'Alice\'s key hash: {alice_key_hash.hex()}')
+
         while True:
             # permutacja
             permutation: list[int] = alice.permute()
@@ -73,11 +79,12 @@ class channel:
 
             bob.flatten_blocks()
 
-            # sprawdzenie poprawności
-            alice_key_hash = alice.send_key_hash()
-            print(f'Alice\'s key hash: {alice_key_hash.hex()}')
+            # permutacja odwrotna
+            alice.unpermute()
+            bob.unpermute()
 
-            if bob.get_key_hash(alice_key_hash):
+            # sprawdzenie poprawności
+            if bob.check_hash(alice_key_hash):
                 print('Key hashes match - end of error correction\n'
                       f'Bob has {sum([1 for (a, b) in zip(alice.bits, bob.bits) if a == b])} correct bits (~SimMaster)\n'
                       f'{'Both keys are the same' if all([a == b for (a, b) in zip(alice.bits, bob.bits)]) else 'Keys are not the same'}')

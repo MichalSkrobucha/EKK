@@ -9,6 +9,8 @@ class alice:
         self.i: int = 0
         self.n: int = 0
 
+        self.permutation: list[int] = []
+
         self.blocks: list[list[int]] = []
         self.alice_parities: list[int] = []
         self.max_length: int = len(self.bits) // 2
@@ -16,12 +18,12 @@ class alice:
 
     def permute(self) -> list[int]:
         """Alicja generuje permutacje"""
-        permutation: list[int] = list(range(len(self.bits)))
-        shuffle(permutation)
+        self.permutation: list[int] = list(range(len(self.bits)))
+        shuffle(self.permutation)
 
-        self.bits = [self.bits[i] for i in permutation]
+        self.bits = [self.bits[i] for i in self.permutation]
 
-        return permutation
+        return self.permutation
 
     def split_into_blocks(self) -> None:
         """Alicja dzieli bity na bloki"""
@@ -62,6 +64,14 @@ class alice:
                      [sum([x * 2 ** i for (i, x) in enumerate(halfbyte)]) for halfbyte in
                       [self.bits[i: min(len(self.bits), i + 4)] for i in
                        range(0, len(self.bits), 4)]]]))).digest()
+
+    def unpermute(self):
+        bits: list[int] = [0 for _ in self.bits]
+
+        for (new, old) in enumerate(self.permutation):
+            bits[old] = self.bits[new]
+
+        self.bits = bits
 
     def privacy_amplification(self) -> None:
         """Wzmocnienie prywatności"""
