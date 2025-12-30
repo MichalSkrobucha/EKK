@@ -1,27 +1,15 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QHBoxLayout, QTabWidget, QLabel, QPushButton,
-                             QTextEdit, QGroupBox, QFrame, QSplitter, QTableWidget, QTableWidgetItem)
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QTabWidget
 from ProtocolPage import ProtocolPage
-
-
-def load_stylesheet(filename: str) -> str:
-    """Wczytuje style z zewnętrznego pliku qss"""
-    try:
-        with open(filename, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        print("BŁĄD: Nie znaleziono pliku style.qss!")
-        return ""
+from style import STYLESHEET
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("QKD Simulator")
-        self.resize(1100, 700)
-        self.setStyleSheet(load_stylesheet("style.qss"))
+        self.resize(1300, 900)
+        self.setStyleSheet(STYLESHEET)
 
         # Główny widget centralny
         central_widget = QWidget()

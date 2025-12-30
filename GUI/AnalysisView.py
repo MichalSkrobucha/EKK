@@ -8,3 +8,6 @@ from PyQt6.QtCore import Qt
 class AnalysisView(QWidget):
     def __init__(self, protocol_name: str):
         super().__init__()
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel('Placeholder na Analizę'))
+        self.setLayout(layout)

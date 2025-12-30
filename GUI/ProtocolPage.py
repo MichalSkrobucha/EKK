@@ -1,7 +1,5 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QHBoxLayout, QTabWidget, QLabel, QPushButton,
-                             QTextEdit, QGroupBox, QFrame, QSplitter, QTableWidget, QTableWidgetItem)
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from PyQt6.QtCore import Qt
 
 from GUI.AnalysisView import AnalysisView
@@ -26,7 +24,7 @@ class ProtocolPage(QWidget):
 
         # Zakładki
         self.sim_view = SimulationView(protocol_name)
-        self.horiz_tabs.addTab(self.sim_view, "SIM")
+        self.horiz_tabs.addTab(self.sim_view, "SIMULATION")
         self.tab_view = TabView()
         self.horiz_tabs.addTab(self.tab_view, "TABLE")
         self.analysis_view = AnalysisView(protocol_name)
