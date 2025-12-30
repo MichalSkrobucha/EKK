@@ -34,7 +34,7 @@ class bob:
         return self.bob_parities
 
     def get_alice_parity(self, alice_parities: list[int]) -> None:
-        """Bob odbiera parzystosci blokó Alicji i dzieli swoje gdy parzystości się nie zgadzają (gdy blok jest jednobitowy - zmienia bit)"""
+        """Bob odbiera parzystosci bloków Alicji i dzieli swoje gdy parzystości się nie zgadzają (gdy blok jest jednobitowy - zmienia bit)"""
         blocks: list[list[int]] = []
         bob_parities: list[int] = self.bob_parities
 
