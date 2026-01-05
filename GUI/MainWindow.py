@@ -10,6 +10,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("QKD Simulator")
         self.resize(1300, 900)
         self.setStyleSheet(STYLESHEET)
+        # SiM INIT
+        self.bb84_sim = None
+        self.sarg_sim = None
+        self.e91_sim = None
 
         # Główny widget centralny
         central_widget = QWidget()
@@ -27,8 +31,8 @@ class MainWindow(QMainWindow):
 
         # Dodawanie stron protokołów
         # Każda strona to osobna instancja ProtocolPage
-        self.vertical_tabs.addTab(ProtocolPage("BB84"), "BB84")
-        self.vertical_tabs.addTab(ProtocolPage("SARG04"), "SARG04")
-        self.vertical_tabs.addTab(ProtocolPage("E91"), "E91")
+        self.vertical_tabs.addTab(ProtocolPage("BB84", self.bb84_sim), "BB84")
+        self.vertical_tabs.addTab(ProtocolPage("SARG04", self.sarg_sim), "SARG04")
+        self.vertical_tabs.addTab(ProtocolPage("E91", self.e91_sim), "E91")
 
         main_layout.addWidget(self.vertical_tabs)

@@ -12,6 +12,7 @@ class SimManager:
     sim_start: int = 0
     sim_step: int = 1
     sim_end: int = 1000
+    step: int
     qberThreshhold: float = 0.2
     ifEve: bool = True
     logs: bool = True
@@ -37,6 +38,7 @@ class SimManager:
         self.alice = Alice(self.channel, 0.5)
         self.bob = Bob(self.channel, 0.99, 0.01)
         self.eve = Eve(self.channel)
+        self.step = self.sim_start
         logger.set_time(self.sim_start)
 
     def reloadBaseValues(self):
@@ -64,6 +66,7 @@ class SimManager:
         for step in range(self.sim_start, self.sim_end, self.sim_step):
             # Alice sends bits (impulses of photons) to Bob
             logger.msg(f"=====================")
+            self.step = step
             logger.set_time(step)
 
             self.alice.send_key()
@@ -149,3 +152,51 @@ class SimManager:
         print(
             f'Alice and Bob have {len(alice_bits)} each and Bob has {bob_correct_bits} correct ({bob_correct_bits / len(alice_bits):.4f})\n'
             f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
+
+    def sim_next_step(self):
+        if self.sim_step >= self.sim_end:
+            return
+        elif self.sim_step == self.sim_end-1:
+            self.sim_last_step()
+        else:
+            logger.msg(f"=====================")
+            logger.set_time(self.sim_step)
+            self.alice.send_key()
+            if self.ifEve:
+                self.eve.eavesdrop()
+            self.bob.receive()
+
+        self.sim_step += 1
+
+    def sim_last_step(self):
+        logger.msg(f"=====================")
+        # Basis exchange
+        basesA: list[int] = self.alice.sendBases()
+        basesB: list[int] = self.bob.sendBases()
+
+        self.bob.receiveBases(basesA)
+        self.alice.receiveBases(basesB)
+
+        if self.ifEve:
+            self.eve.eavesdrop_bases(basesA, basesB)
+
+        # Sieving
+        self.bob.sieveBits()
+        self.alice.sieveBits()
+
+        if self.ifEve:
+            self.eve.print_sieved_bits()
+
+        # Bob decides sampleIDs
+        self.alice.getSampleIds(self.bob.sendSampleIds())
+        # Sample exchange
+        self.alice.recieveSamples(self.bob.sendSample())
+        self.bob.receiveSamples(self.alice.sendSample())
+        # QBER calculation
+        self.alice.calculateQBER()
+        self.bob.calculateQBER()
+
+        if self.bob.qber > self.qberThreshhold:
+            # QBER is NOT accepatable
+            logger.log("QBER exceeded threshhold. Ending transmission")
+            return

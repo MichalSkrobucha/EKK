@@ -13,8 +13,10 @@ class ProtocolPage(QWidget):
     Zawiera POZIOME zakładki (SIM, TABLE, GRAPH).
     """
 
-    def __init__(self, protocol_name):
+    def __init__(self, protocol_name, sim_manager):
         super().__init__()
+        self.protocol_name = protocol_name
+        self.sim_manager = sim_manager
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
 
@@ -23,11 +25,11 @@ class ProtocolPage(QWidget):
         self.horiz_tabs.setTabPosition(QTabWidget.TabPosition.North)
 
         # Zakładki
-        self.sim_view = SimulationView(protocol_name)
+        self.sim_view = SimulationView(protocol_name, sim_manager)
         self.horiz_tabs.addTab(self.sim_view, "SIMULATION")
-        self.tab_view = TabView()
+        self.tab_view = TabView(protocol_name, sim_manager)
         self.horiz_tabs.addTab(self.tab_view, "TABLE")
-        self.analysis_view = AnalysisView(protocol_name)
+        self.analysis_view = AnalysisView(protocol_name, sim_manager)
         self.horiz_tabs.addTab(self.analysis_view, "ANALYSIS")
 
         layout.addWidget(self.horiz_tabs)
