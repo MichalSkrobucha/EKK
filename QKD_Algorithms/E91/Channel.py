@@ -1,4 +1,4 @@
-from Photon import Photon
+from .Photon import Photon
 from QKD_Algorithms.Logger import SimLogger
 
 logger = SimLogger()

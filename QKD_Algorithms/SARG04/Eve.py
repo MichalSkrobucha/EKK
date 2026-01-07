@@ -1,6 +1,5 @@
 from random import randint
-
-from Channel import Channel
+from .Channel import Channel
 from QKD_Algorithms.Logger import SimLogger
 
 logger = SimLogger()

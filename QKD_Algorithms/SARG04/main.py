@@ -1,4 +1,4 @@
-from Analysis import *
+from .Analysis import *
 from QKD_Algorithms.Logger import SimLogger
 
 logger = SimLogger()

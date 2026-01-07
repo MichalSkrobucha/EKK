@@ -1,8 +1,8 @@
 import pandas as pd
-from Alice import Alice
-from Bob import Bob
-from Eve import Eve
-from Channel import Channel
+from .Alice import Alice
+from .Bob import Bob
+from .Eve import Eve
+from .Channel import Channel
 from QKD_Algorithms.Logger import SimLogger
 
 logger = SimLogger()

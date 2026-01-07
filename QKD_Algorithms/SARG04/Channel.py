@@ -1,5 +1,5 @@
 from QKD_Algorithms.Logger import SimLogger
-from Photon import Photon
+from .Photon import Photon
 from random import random, randint
 
 logger = SimLogger()

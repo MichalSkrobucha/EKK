@@ -1,6 +1,6 @@
 import random
-from Channel import Channel
-from Photon import Photon
+from .Channel import Channel
+from .Photon import Photon
 
 
 class Alice:

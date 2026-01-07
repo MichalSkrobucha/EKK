@@ -3,7 +3,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from QKD_Algorithms.Logger import SimLogger
-from SimManager import SimManager
+from .SimManager import SimManager
 import pandas as pd
 import seaborn as sns
 

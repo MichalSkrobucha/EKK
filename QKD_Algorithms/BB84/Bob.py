@@ -1,6 +1,6 @@
-from Channel import Channel
+from .Channel import Channel
 from QKD_Algorithms.Logger import SimLogger
-from Photon import Photon
+from .Photon import Photon
 from random import randint, binomialvariate, shuffle
 
 logger = SimLogger()

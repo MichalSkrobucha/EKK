@@ -1,8 +1,11 @@
 import sys
 from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QTabWidget
+
+from QKD_Algorithms import BB84
+from QKD_Algorithms import SARG04
+from QKD_Algorithms import E91
 from ProtocolPage import ProtocolPage
 from style import STYLESHEET
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -11,9 +14,9 @@ class MainWindow(QMainWindow):
         self.resize(1300, 900)
         self.setStyleSheet(STYLESHEET)
         # SiM INIT
-        self.bb84_sim = None
-        self.sarg_sim = None
-        self.e91_sim = None
+        self.bb84_sim = BB84.SimManager
+        self.sarg_sim = SARG04.SimManager
+        self.e91_sim = E91.SimManager
 
         # Główny widget centralny
         central_widget = QWidget()

@@ -1,7 +1,7 @@
-from Channel import Channel
+from .Channel import Channel
 import random
 
-from Photon import Photon
+from .Photon import Photon
 
 
 class Bob:

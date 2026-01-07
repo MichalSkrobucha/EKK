@@ -1,7 +1,7 @@
-from Alice import Alice
-from Bob import Bob
-from Channel import Channel
-from Source import Source
+from .Alice import Alice
+from .Bob import Bob
+from.Channel import Channel
+from .Source import Source
 from QKD_Algorithms.Logger import SimLogger
 import math
 from itertools import combinations

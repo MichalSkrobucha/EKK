@@ -1,4 +1,4 @@
-from Photon import Photon, Entanglemet_Controller
+from .Photon import Photon, Entanglemet_Controller
 from QKD_Algorithms.Logger import SimLogger
 from random import random
 
