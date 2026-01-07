@@ -8,10 +8,9 @@ logger = SimLogger()
 
 
 class SettingsPanel(QWidget):
-    def __init__(self, protocol_name, sim_manager):
-        super().__init__()
-        self.protocol = protocol_name
-        self.sim_manager = sim_manager
+    def __init__(self, protocol_name, parent=None):
+        super().__init__(parent)
+        self.protocol_name = protocol_name
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(5, 5, 5, 5)
         self.layout.setSpacing(15)
@@ -21,7 +20,7 @@ class SettingsPanel(QWidget):
         self.add_channel_section()
 
         # Różne ustawienia dla różnych protokołów
-        if self.protocol in ["BB84", "SARG04"]:
+        if self.protocol_name in ["BB84", "SARG04"]:
             self.add_bb84_sarg_controls()
         elif self.protocol == "E91":
             self.add_e91_controls()

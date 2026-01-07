@@ -12,10 +12,10 @@ class SimulationView(QWidget):
     Zawiera: Controls, Animation, Step Controller, Logs.
     """
 
-    def __init__(self, protocol_name: str, sim_manager):
-        super().__init__()
+    def __init__(self, protocol_name, parent=None):
+        super().__init__(parent)
+
         self.protocol_name = protocol_name
-        self.sim_manager = sim_manager
 
         # Główny Layout całego widoku SIM
         main_layout = QVBoxLayout()
@@ -25,7 +25,7 @@ class SimulationView(QWidget):
         top_section = QHBoxLayout()
 
         # PANEL CONTROLS
-        setting_layout = SettingsPanel(protocol_name, sim_manager)
+        setting_layout = SettingsPanel(self, protocol_name)
 
         # ŚRODKOWY OBSZAR (ANIMATION + CONTROLLER)
         sim_layout = QVBoxLayout()
@@ -39,7 +39,7 @@ class SimulationView(QWidget):
         anim_layout.addWidget(anim_label)
 
         # STEP CONTROLLER
-        controls_layout = SimControllerPanel(sim_manager)
+        controls_layout = SimControllerPanel(self)
 
         # Składanie środka
         sim_layout.addWidget(self.animation_frame, stretch=1)

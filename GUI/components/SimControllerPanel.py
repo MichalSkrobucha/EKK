@@ -5,13 +5,12 @@ from GUI.components.media_button import create_media_btn, update_play_button_vis
 
 
 class SimControllerPanel(QWidget):
-    def __init__(self, sim_manager):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.is_paused = True
         min_val = 10
         max_val = 200
         default_val = 100
-        self.sim_manager = sim_manager
 
         controller_frame = QFrame()
         controller_frame.setStyleSheet(f"background-color: {COLORS['bg_selected']}; border-radius: 5px;")

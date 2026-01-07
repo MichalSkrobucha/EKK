@@ -6,10 +6,8 @@ from PyQt6.QtCore import Qt
 
 
 class AnalysisView(QWidget):
-    def __init__(self, protocol_name: str, sim_manager):
-        super().__init__()
-        self.protocol_name = protocol_name
-        self.sim_manager = sim_manager
+    def __init__(self, parent=None):
+        super().__init__(parent)
         layout = QVBoxLayout()
         layout.addWidget(QLabel('Placeholder na Analizę'))
         self.setLayout(layout)

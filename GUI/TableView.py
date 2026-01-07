@@ -3,11 +3,9 @@ from PyQt6.QtWidgets import (QVBoxLayout, QTabWidget,QTableWidget)
 from style import COLORS
 
 
-class TabView(QTabWidget):
-    def __init__(self, protocol_name, sim_manager):
-        super().__init__()
-        self.protocol_name = protocol_name
-        self.sim_manager = sim_manager
+class TableView(QTabWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         layout = QVBoxLayout()
         self.result_table = QTableWidget(5, 5)

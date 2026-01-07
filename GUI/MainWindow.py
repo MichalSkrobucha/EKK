@@ -1,22 +1,21 @@
 import sys
 from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QTabWidget
 
-from QKD_Algorithms import BB84
-from QKD_Algorithms import SARG04
-from QKD_Algorithms import E91
+from QKD_Algorithms.BB84.SimManager import SimManager as BB84Manager
+from QKD_Algorithms.E91.SimManager import SimManager as E91Manager
+from QKD_Algorithms.SARG04.SimManager import SimManager as SARG04Manager
 from ProtocolPage import ProtocolPage
 from style import STYLESHEET
 
+
 class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # -- Layout --
         self.setWindowTitle("QKD Simulator")
         self.resize(1300, 900)
         self.setStyleSheet(STYLESHEET)
-        # SiM INIT
-        self.bb84_sim = BB84.SimManager
-        self.sarg_sim = SARG04.SimManager
-        self.e91_sim = E91.SimManager
 
         # Główny widget centralny
         central_widget = QWidget()
@@ -34,8 +33,24 @@ class MainWindow(QMainWindow):
 
         # Dodawanie stron protokołów
         # Każda strona to osobna instancja ProtocolPage
-        self.vertical_tabs.addTab(ProtocolPage("BB84", self.bb84_sim), "BB84")
-        self.vertical_tabs.addTab(ProtocolPage("SARG04", self.sarg_sim), "SARG04")
-        self.vertical_tabs.addTab(ProtocolPage("E91", self.e91_sim), "E91")
+        self.vertical_tabs.addTab(self.create_protocol_page("BB84"), "BB84")
+        self.vertical_tabs.addTab(self.create_protocol_page("SARG04"), "SARG04")
+        self.vertical_tabs.addTab(self.create_protocol_page("E91"), "E91")
 
         main_layout.addWidget(self.vertical_tabs)
+
+    def create_protocol_page(self, protocol_name):
+        """Tworzy stronę protokołu dynamicznie w zależności od nazwy"""
+        target_manager_class = None
+
+        if protocol_name == "BB84":
+            target_manager_class = BB84Manager
+        elif protocol_name == "E91":
+            target_manager_class = E91Manager
+        elif protocol_name == "SARG04":
+            target_manager_class = SARG04Manager
+
+        if target_manager_class:
+            page = ProtocolPage(protocol_name, target_manager_class)
+            return page
+        return None
