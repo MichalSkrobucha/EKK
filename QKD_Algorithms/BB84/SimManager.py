@@ -10,11 +10,11 @@ logger = SimLogger()
 
 class SimManager:
     sim_start: int = 0
-    sim_step: int = 1
     sim_end: int = 1000
-    step: int
+    sim_step: int
     qberThreshhold: float = 0.2
     ifEve: bool = True
+    is_running: bool = False
     logs: bool = True
 
     channel_length: float = 1.0  # km
@@ -38,7 +38,7 @@ class SimManager:
         self.alice = Alice(self.channel, 0.5)
         self.bob = Bob(self.channel, 0.99, 0.01)
         self.eve = Eve(self.channel)
-        self.step = self.sim_start
+        self.sim_step = self.sim_start
         logger.set_time(self.sim_start)
 
     def reloadBaseValues(self):
@@ -63,7 +63,7 @@ class SimManager:
                    f'Total rates are {self.dumpening_dB} dB of dumpening and {self.base_transform_per_km} dB of base_transform\n'
                    f'Probability of events (per photon) are {self.dumpening} for dumpening and {self.base_transform_per_km} for base_transform')
 
-        for step in range(self.sim_start, self.sim_end, self.sim_step):
+        for step in range(self.sim_start, self.sim_end):
             # Alice sends bits (impulses of photons) to Bob
             logger.msg(f"=====================")
             self.step = step
@@ -154,22 +154,32 @@ class SimManager:
             f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
 
     def sim_next_step(self):
-        if self.sim_step >= self.sim_end:
-            return
-        elif self.sim_step == self.sim_end-1:
-            self.sim_last_step()
+        if self.sim_step < self.sim_end:
+            self.sim_transmition_step()
+        elif self.sim_step == self.sim_end:
+            self.sim_bases_exchange_step()
+        elif self.sim_step == self.sim_end + 1:
+            self.sim_bases_exchange_step()
+        elif self.sim_step == self.sim_end + 2:
+            self.sim_sieve_step()
+        elif self.sim_step == self.sim_end + 3:
+            self.sim_sampling_step()
+            self.sim_calculate_qber()
         else:
-            logger.msg(f"=====================")
-            logger.set_time(self.sim_step)
-            self.alice.send_key()
-            if self.ifEve:
-                self.eve.eavesdrop()
-            self.bob.receive()
-
+            self.is_running = False
+            return
         self.sim_step += 1
 
-    def sim_last_step(self):
-        logger.msg(f"=====================")
+    def sim_transmition_step(self):
+        logger.set_time(self.step)
+        self.alice.send_key()
+
+        if self.ifEve:
+            self.eve.eavesdrop()
+
+        self.bob.receive()
+
+    def sim_bases_exchange_step(self):
         # Basis exchange
         basesA: list[int] = self.alice.sendBases()
         basesB: list[int] = self.bob.sendBases()
@@ -180,6 +190,7 @@ class SimManager:
         if self.ifEve:
             self.eve.eavesdrop_bases(basesA, basesB)
 
+    def sim_sieve_step(self):
         # Sieving
         self.bob.sieveBits()
         self.alice.sieveBits()
@@ -187,11 +198,14 @@ class SimManager:
         if self.ifEve:
             self.eve.print_sieved_bits()
 
+    def sim_sampling_step(self):
         # Bob decides sampleIDs
         self.alice.getSampleIds(self.bob.sendSampleIds())
         # Sample exchange
         self.alice.recieveSamples(self.bob.sendSample())
         self.bob.receiveSamples(self.alice.sendSample())
+
+    def sim_calculate_qber(self):
         # QBER calculation
         self.alice.calculateQBER()
         self.bob.calculateQBER()
@@ -200,3 +214,7 @@ class SimManager:
             # QBER is NOT accepatable
             logger.log("QBER exceeded threshhold. Ending transmission")
             return
+
+
+
+

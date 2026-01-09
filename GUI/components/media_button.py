@@ -16,10 +16,10 @@ def create_media_btn(icon_name, tooltip="", noFocus=True):
     return btn
 
 
-def update_play_button_visuals(btn_play, is_paused):
-    if is_paused:
-        btn_play.setIcon(qta.icon('fa5s.play', color=COLORS['icon_color']))
-        btn_play.setToolTip("Resume Simulation")
-    else:
+def update_play_button_visuals(btn_play, is_running):
+    if is_running:
         btn_play.setIcon(qta.icon('fa5s.pause', color=COLORS['icon_active']))
         btn_play.setToolTip("Start Simulation")
+    else:
+        btn_play.setIcon(qta.icon('fa5s.play', color=COLORS['icon_color']))
+        btn_play.setToolTip("Resume Simulation")

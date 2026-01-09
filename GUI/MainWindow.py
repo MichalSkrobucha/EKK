@@ -41,16 +41,16 @@ class MainWindow(QMainWindow):
 
     def create_protocol_page(self, protocol_name):
         """Tworzy stronę protokołu dynamicznie w zależności od nazwy"""
-        target_manager_class = None
+        sim_manager = None
 
         if protocol_name == "BB84":
-            target_manager_class = BB84Manager
+            sim_manager = BB84Manager()
         elif protocol_name == "E91":
-            target_manager_class = E91Manager
+            sim_manager = E91Manager()
         elif protocol_name == "SARG04":
-            target_manager_class = SARG04Manager
+            sim_manager = SARG04Manager()
 
-        if target_manager_class:
-            page = ProtocolPage(protocol_name, target_manager_class)
+        if sim_manager:
+            page = ProtocolPage(protocol_name, sim_manager)
             return page
         return None

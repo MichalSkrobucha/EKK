@@ -22,7 +22,7 @@ class SettingsPanel(QWidget):
         # Różne ustawienia dla różnych protokołów
         if self.protocol_name in ["BB84", "SARG04"]:
             self.add_bb84_sarg_controls()
-        elif self.protocol == "E91":
+        elif self.protocol_name == "E91":
             self.add_e91_controls()
 
         self.layout.addStretch()
@@ -166,11 +166,13 @@ class SettingsPanel(QWidget):
         #
         # EVE TODO?
 
-    def on_value_change(self, value, sim_variable):
+    @staticmethod
+    def on_value_change(value, sim_variable):
         if value != sim_variable:
             logger.log(f"Changed value {sim_variable} -> {value}")
             sim_variable = value
 
+    @staticmethod
     def on_bases_change(self, value, sim_variable):
         bases = {}
         for i, base in enumerate(value.split(',;')):
@@ -178,13 +180,12 @@ class SettingsPanel(QWidget):
         logger.log(f"Changed value {sim_variable} -> {bases}")
         sim_variable = bases
 
-
-    def lock_settings(self):
-        widgets_list = self.layout.findChildren(QWidget)
-        for widget in widgets_list:
-            widget.setEnabled(False)
-
-    def unlock_settings(self):
-        pass
+    # def lock_settings(self):
+    #     widgets_list = self.layout.findChildren(QWidget)
+    #     for widget in widgets_list:
+    #         widget.setEnabled(False)
+    #
+    # def unlock_settings(self):
+    #     pass
 
 

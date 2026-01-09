@@ -5,7 +5,7 @@ class Photon:
     def __init__(self, base: int, bit: int) -> None:
         """
         :param base: 0 - computational base (+), 1 - Hadamard base (x)
-        :param bit: 0 - vertical/diagonal to right (| /), 1 - horizontal/diagonal to left (_ \)   (respecitvely in + and x basis)
+        :param bit: 0 - vertical/diagonal to right (| /), 1 - horizontal/diagonal to left (_ \\)   (respecitvely in + and x basis)
         """
         self.base: int = base
         self.bit: int = bit

@@ -14,7 +14,6 @@ class SimulationView(QWidget):
 
     def __init__(self, protocol_name, parent=None):
         super().__init__(parent)
-
         self.protocol_name = protocol_name
 
         # Główny Layout całego widoku SIM
@@ -25,7 +24,7 @@ class SimulationView(QWidget):
         top_section = QHBoxLayout()
 
         # PANEL CONTROLS
-        setting_layout = SettingsPanel(self, protocol_name)
+        self.setting_layout = SettingsPanel(protocol_name, self)
 
         # ŚRODKOWY OBSZAR (ANIMATION + CONTROLLER)
         sim_layout = QVBoxLayout()
@@ -39,14 +38,20 @@ class SimulationView(QWidget):
         anim_layout.addWidget(anim_label)
 
         # STEP CONTROLLER
-        controls_layout = SimControllerPanel(self)
+        self.controls_layout = SimControllerPanel(self)
+        self.sig_play = self.controls_layout.sig_play
+        self.sig_reset = self.controls_layout.sig_reset
+        self.sig_next = self.controls_layout.sig_next
+        self.sig_prev = self.controls_layout.sig_prev
+        self.sig_skip = self.controls_layout.sig_skip
+        self.sig_speed = self.controls_layout.sig_speed
 
         # Składanie środka
         sim_layout.addWidget(self.animation_frame, stretch=1)
-        sim_layout.addWidget(controls_layout, stretch=0)
+        sim_layout.addWidget(self.controls_layout, stretch=0)
 
         # Dodanie lewego i środkowego panelu do górnej sekcji
-        top_section.addWidget(setting_layout, stretch=0)
+        top_section.addWidget(self.setting_layout, stretch=0)
         top_section.addLayout(sim_layout, stretch=1)
 
         # DOLNA CZĘŚĆ (LOGS)
