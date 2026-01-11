@@ -15,6 +15,15 @@ class SimWorker(QObject):
         self.current_step = 0
         self.speed_delay = 0.1
 
+    def handle_play_toggle(self):
+        if self.sim_manager.is_running:
+            if self.is_paused:
+                self.resume_simulation()
+            else:
+                self.pause_simulation()
+        else:
+            self.start_simulation()
+
     def start_simulation(self):
         self.sim_manager.is_running = True
         # Główna petla symulacji
@@ -25,7 +34,7 @@ class SimWorker(QObject):
             try:
                 self.sim_manager.sim_next_step()
             except Exception as e:
-                pass
+                pass  # TODO
             time.sleep(self.speed_delay)
 
     def stop_simulation(self):
@@ -43,7 +52,10 @@ class SimWorker(QObject):
     def skip_simulation(self):
         pass
 
-    def single_step(self):
+    def prev_step_simulation(self):
+        pass
+
+    def next_step_simulation(self):
         pass
 
     def set_speed(self, value_percentage):

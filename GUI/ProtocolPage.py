@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from PyQt6.QtCore import QThread
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from SimWorker import SimWorker
 from GUI.AnalysisView import AnalysisView
@@ -14,6 +14,8 @@ class ProtocolPage(QWidget):
     To jest strona dla konkretnego protokołu (np. BB84).
     Zawiera POZIOME zakładki (SIM, TABLE, GRAPH).
     """
+    sig_start_loop = pyqtSignal()
+
     def __init__(self, protocol_name, sim_manager, parent=None):
         super().__init__(parent)
         self.protocol_name = protocol_name
@@ -44,38 +46,14 @@ class ProtocolPage(QWidget):
         layout.addWidget(self.horiz_tabs)
         self.setLayout(layout)
 
-        self.sim_view.sig_play.connect(self.handle_play_toggle)
-        self.sim_view.sig_reset.connect(self.handle_reset_toggle)
-        self.sim_view.sig_next.connect(self.handle_next_toggle)
-        self.sim_view.sig_prev.connect(self.handle_prev_toggle)
-        self.sim_view.sig_skip.connect(self.handle_skip_toggle)
-        self.sim_view.sig_speed.connect(self.handle_speed_toggle)
+        self.sim_view.sig_play.connect(self.worker.handle_play_toggle)
+        self.sim_view.sig_reset.connect(self.worker.reset_simulation)
+        self.sim_view.sig_next.connect(self.worker.next_step_simulation)
+        self.sim_view.sig_prev.connect(self.worker.prev_step_simulation)
+        self.sim_view.sig_skip.connect(self.worker.skip_simulation)
+        self.sim_view.sig_speed.connect(self.worker.set_speed)
 
         self.sim_thread.start()
-
-    def handle_play_toggle(self):
-        if self.worker.sim_manager.is_running:
-            if self.worker.is_paused:
-                self.worker.resume_simulation()
-            else:
-                self.worker.pause_simulation()
-        else:
-            self.worker.start_simulation()
-
-    def handle_reset_toggle(self):
-        self.worker.reset_simulation()
-
-    def handle_skip_toggle(self):
-        self.worker.skip_simulation()
-
-    def handle_next_toggle(self):
-        pass
-
-    def handle_prev_toggle(self):
-        pass
-
-    def handle_speed_toggle(self):
-        pass
 
     def closeEvent(self, event):
         self.worker.stop_simulation()
