@@ -1,20 +1,14 @@
 import sys
 import logging
+from collections import defaultdict
 
 
 class SimLogger:
-    _instance = None
 
-    def __new__(cls, sim_start: int = 0):
-        """
-        Creates single instance of class (only instace for simulation)
-        :param sim_start: what is initial time of simulation
-        """
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance.sim_time = sim_start
-            cls._instance._setup_logger()
-        return cls._instance
+    def __init__(self, sim_start: int = 0):
+        self.sim_time = sim_start
+        self.log_history = defaultdict(list)
+        self._setup_logger()
 
     def _setup_logger(self, name: str = "MyLogger", level=logging.DEBUG):
         self.logger = logging.getLogger(name)
@@ -65,27 +59,34 @@ class SimLogger:
     def msg(self, msg: str, **kwargs) -> None:
         self.use_plain_format(True)
         self.logger.info(msg, **kwargs)
+        self.log_history[self.sim_time].append(msg)
 
     def log(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
         formatted_msg = f">>> [sim_time: {self.sim_time}] {msg} <<<"
         self.logger.info(formatted_msg, **kwargs)
+        self.log_history[self.sim_time].append(msg)
 
     def debug(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
         self.logger.debug(msg, **kwargs)
+        self.log_history[self.sim_time].append(msg)
 
     def info(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
         self.logger.info(msg, **kwargs)
+        self.log_history[self.sim_time].append(msg)
 
     def warning(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
         self.logger.warning(msg, **kwargs)
+        self.log_history[self.sim_time].append(msg)
 
     def error(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
         self.logger.error(msg, **kwargs)
+        self.log_history[self.sim_time].append(msg)
 
     def important(self, msg):
         self.important_logger.info(msg)
+        self.log_history[self.sim_time].append(msg)

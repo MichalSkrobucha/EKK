@@ -173,35 +173,6 @@ class Bob:
                 self.logger.log(f"Bob's measure is unclear")
                 return
 
-    def sendBases(self) -> list[int]:
-        """
-        Returns bases in which he measured bits of key
-        :return: List of bases (in chronological order)
-        """
-        self.logger.log("Bob sent his bases to Alice")
-        return self.bases
-
-    def receiveBases(self, bases: list[int]) -> None:
-        """
-        Get's Alice's bases in which she send bits of key
-        :param bases: Alice's bases (in chronological order)
-        """
-        self.aliceBases = bases
-        self.logger.log(f"Bob is recieving bases from Alice {bases}")
-
-    def sieveBits(self) -> None:
-        """
-        Sieves key bits based on his and Alice's bases
-        """
-        i: int = 0
-
-        for (a, b, bit) in zip(self.aliceBases, self.bases, self.bits):
-            if a == b:
-                self.sievedBits.append(bit)
-
-        self.logger.log(
-            f"Bob sieved his measurments (based on his and Alice's bases) and got {len(self.sievedBits)} bits: {self.sievedBits}")
-
     def sendSampleIds(self) -> list[int]:
         """
         Sends IDs of bits which are to used as samples (for QBER)

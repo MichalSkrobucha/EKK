@@ -27,9 +27,11 @@ class Alice:
         self.bobBases: list[int] = []
         self.bits: list[int] = []
         self.sievedBits: list[int] = []
+
         self.aliceSample: list[int] = []
         self.bobSample: list[int] = []
         self.sampleIds: list[int] = []
+
         self.qber: float = 0.0
 
     def clearLists(self) -> None:
@@ -72,33 +74,6 @@ class Alice:
         """
         self.logger.log("Alice sent key to the channel")
         self.channel.send(self._generate_key())
-
-    def sendBases(self) -> list[int]:
-        """
-        Returns bases in which she send bits of key
-        :return: List of bases (in chronological order)
-        """
-        self.logger.log("Alice sent bases")
-        return self.bases
-
-    def receiveBases(self, bases: list[int]) -> None:
-        """
-        Get's Bobs bases in which he measured bits of key
-        :param bases: Bob's bases (in chronological order)
-        """
-        self.bobBases = bases
-        self.logger.log(f"Alice received bases from Bob: {bases}")
-
-    def sieveBits(self) -> None:
-        """
-        Sieves key bits based on her and Bob's bases
-        """
-        for (a, b, bit) in zip(self.bases, self.bobBases, self.bits):
-            if a == b:
-                self.sievedBits.append(bit)
-
-        self.logger.log(
-            f"Alice sieved her measurments (based on her and Bob's bases) and got {len(self.sievedBits)} bits: {self.sievedBits}")
 
     def getSampleIds(self, sampleIds: list[int]) -> None:
         """

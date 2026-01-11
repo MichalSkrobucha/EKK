@@ -6,7 +6,7 @@ from .Channel import Channel
 from QKD_Algorithms.Logger import SimLogger
 
 
-class SimManager:
+class SimManagerBB84:
     sim_start: int = 0
     sim_end: int = 1000
     sim_step: int
@@ -65,16 +65,7 @@ class SimManager:
 
         for step in range(self.sim_start, self.sim_end):
             # Alice sends bits (impulses of photons) to Bob
-            self.logger.msg(f"=====================")
-            self.step = step
-            self.logger.set_time(step)
-
-            self.alice.send_key()
-
-            if self.ifEve:
-                self.eve.eavesdrop()
-
-            self.bob.receive()
+            self.sim_transmition_step()
 
         self.logger.msg(f"=====================")
         # Basis exchange
@@ -171,7 +162,7 @@ class SimManager:
         self.sim_step += 1
 
     def sim_transmition_step(self):
-        self.logger.set_time(self.step)
+        self.logger.set_time(self.sim_step)
         self.alice.send_key()
 
         if self.ifEve:
