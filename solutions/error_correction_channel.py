@@ -1,33 +1,32 @@
 from error_correction_alice import alice
 from error_correction_bob import bob
-from error_correction_eve import eve
 from random import randint, random
-
+from math import ceil
 
 class channel:
     def __init__(self, n=512, pb=0.95, pe=0.6):
         bits = [randint(0, 1) for _ in range(n)]
 
+        self.pb: float = pb
+
         self.alice = alice(bits[:], 1 - pb)
         self.bob = bob([bit if random() < pb else (1 - bit) for bit in bits], 1 - pb)
-        self.eve = eve([bit if random() < pe else (-1) for bit in bits])
 
     def peek_keys(self):
         n = len(self.alice.bits)
         bob_correct: int = sum([1 for (a, b) in zip(self.alice.bits, self.bob.bits) if a == b])
-        eve_known: int = sum([1 for e in self.eve.bits if e != -1])
 
         print(f'A: {''.join([str(bit) for bit in self.alice.bits])}')
         print(f'B: {''.join([str(bit) for bit in self.bob.bits])}')
-        print(f'E: {''.join([str(bit) if bit >= 0 else 'x' for bit in self.eve.bits])}')
-        print(f'Bob has {bob_correct} bits ({bob_correct / n :.4f})\n'
-              f'Eve knows {eve_known} bits ({eve_known / n :.4f})\n'
+        print(f'Bob has {bob_correct} correct bits (out of {len(self.bob.bits)}) ({bob_correct / n :.4f})\n'
               f'~SimMaster\n')
 
-    def run(self):
+    def run_error_correction(self):
+
+        print('\n--- ERROR CORRECTION ---\n')
+
         alice = self.alice
         bob = self.bob
-        # eve = self.eve
 
         # korekcja błędów
         # Alicja i Bob wymieniają się informacjami, ewa słucha (w teorii - brak wywołań funkcji)
@@ -35,7 +34,7 @@ class channel:
         # Alicja wysyła klucz
         alice_key_hash = alice.send_key_hash()
         bob.get_key_hash(alice_key_hash)
-        print(f'Alice\'s key hash: {alice_key_hash.hex()}')
+        print(f'Alice\'s key hash: {alice_key_hash.hex()}\n')
 
         while True:
             # permutacja
@@ -84,10 +83,45 @@ class channel:
             bob.unpermute()
 
             # sprawdzenie poprawności
-            if bob.check_hash(alice_key_hash):
+            if bob.check_hash():
                 print('Key hashes match - end of error correction\n'
                       f'Bob has {sum([1 for (a, b) in zip(alice.bits, bob.bits) if a == b])} correct bits (~SimMaster)\n'
                       f'{'Both keys are the same' if all([a == b for (a, b) in zip(alice.bits, bob.bits)]) else 'Keys are not the same'}')
                 break
 
             print('Key hashes don\'t match - next iteration of error correction\n\n')
+
+    def run_privacy_amplification(self):
+
+        print('\n--- PRIVACY AMPLIFICATION ---\n')
+
+        alice = self.alice
+        bob = self.bob
+
+        print(f'Alice and Bob have {len(self.alice.bits)} bits\n')
+
+        # estywamcja bezpieczeńśtwa klucza
+        qber: float = 1 - self.pb
+        n: int = len(self.alice.bits)
+
+        ###
+        eves_known_bits: int = ceil(qber * n)
+        security_bits : int = n - eves_known_bits
+
+        print(f'Estimated bits known by Eve: {eves_known_bits}\n'
+              f'Esitmated secuirty provided by key: {security_bits} bits\n')
+
+        # wzmocnienie prywatności
+        r_bytes: bytes = alice.send_random_bytes()
+        bob.get_random_bytes(r_bytes)
+
+        print(f'Alice send random bytes ({alice.bytes_count}): {alice.random_bytes.hex()}\n')
+
+        alice.get_final_key()
+        bob.get_final_key()
+
+        print('Alice and Bob calculate final key')
+
+        print(f'A: {alice.key.hex()}\n'
+              f'B: {bob.key.hex()}\n'
+              f'Keys match: {alice.key == bob.key}')
