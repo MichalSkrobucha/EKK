@@ -1,4 +1,4 @@
-from PhotonE91 import PhotonE91 as Photon
+from .Photon import Photon
 from random import randint, random
 
 
@@ -10,7 +10,7 @@ class EntanglemetController:
         for ph in self.photons:
             ph.controller = self
 
-    def measure_photon(self, photon: Photon, base: int):
+    def measure_photon(self, photon: Photon):
         id = self.photons.index(photon)
         self.photons.remove(photon)
 

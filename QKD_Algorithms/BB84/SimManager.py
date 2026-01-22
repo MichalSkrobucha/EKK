@@ -32,13 +32,13 @@ class SimManager:
 
     def __init__(self):
         self.reloadBaseValues()
-        self.channel = Channel(self.dumpening, self.base_transform)
-        self.alice = Alice(self.channel, 0.5)
-        self.bob = Bob(self.channel, 0.99, 0.01)
-        self.eve = Eve(self.channel)
+        self.logger = SimLogger()
+        self.channel = Channel(self.dumpening, self.base_transform, self.logger)
+        self.alice = Alice(self.channel, 0.5, self.logger)
+        self.bob = Bob(self.channel, 0.99, 0.01, self.logger)
+        self.eve = Eve(self.channel, self.logger)
         self.sim_step = self.sim_start
 
-        self.logger = SimLogger()
         self.logger.set_time(self.sim_start)
 
     def reloadBaseValues(self):
