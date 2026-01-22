@@ -1,4 +1,4 @@
-from random import shuffle
+from random import shuffle, randbytes
 from hashlib import sha256
 from math import ceil
 
@@ -15,6 +15,10 @@ class alice:
         self.alice_parities: list[int] = []
         self.max_length: int = len(self.bits) // 2
         self.start_length: int = ceil(1 / q)
+
+        self.bytes_count : int = 16
+        self.random_bytes: bytes = b''
+        self.key: bytes = b''
 
     def permute(self) -> list[int]:
         """Alicja generuje permutacje"""
@@ -73,6 +77,16 @@ class alice:
 
         self.bits = bits
 
-    def privacy_amplification(self) -> None:
-        """Wzmocnienie prywatności"""
-        pass
+    def send_random_bytes(self) -> bytes:
+        self.random_bytes = randbytes(self.bytes_count)
+
+        return self.random_bytes
+
+    def get_final_key(self) -> None:
+        self.bits += [0] * (8 - len(self.bits) % 8)
+        quads : list[list[int]] = [self.bits[i : i + 4] for i in range(0, len(self.bits), 4)]
+        quad_vals : list[int] = [sum([2**(3 - i) * b for (i, b) in enumerate(q)]) for q in quads]
+        quad_hex : list[str] = [hex(q)[2:] for q in quad_vals]
+        hex_bytes : str = ''.join(quad_hex)
+        b : bytes = bytes.fromhex(hex_bytes) + self.random_bytes
+        self.key = sha256(b).digest()

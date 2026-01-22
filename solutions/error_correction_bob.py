@@ -15,6 +15,9 @@ class bob:
         self.max_length: int = len(self.bits) // 2
         self.start_length: int = ceil(1 / q)
 
+        self.random_bytes : bytes = b''
+        self.key : bytes = b''
+
     def get_alice_permutation(self, permutation: list[int]):
         """Bob odbiera permutację Alicji i dzieli permutuje swój klucz"""
         self.permutation = permutation
@@ -68,7 +71,7 @@ class bob:
                       [self.bits[i: min(len(self.bits), i + 4)] for i in
                        range(0, len(self.bits), 4)]]]))).digest()
 
-    def unpermute(self):
+    def unpermute(self) -> None:
         bits: list[int] = [0 for _ in self.bits]
 
         for (new, old) in enumerate(self.permutation):
@@ -76,6 +79,14 @@ class bob:
 
         self.bits = bits
 
-    def privacy_amplification(self) -> None:
-        """Wzmocnienie prywatności"""
-        pass
+    def get_random_bytes(self, r_bytes: bytes) -> None:
+        self.random_bytes = r_bytes
+
+    def get_final_key(self) -> None:
+        self.bits += [0] * (8 - len(self.bits) % 8)
+        quads : list[list[int]] = [self.bits[i : i + 4] for i in range(0, len(self.bits), 4)]
+        quad_vals : list[int] = [sum([2**(3 - i) * b for (i, b) in enumerate(q)]) for q in quads]
+        quad_hex : list[str] = [hex(q)[2:] for q in quad_vals]
+        hex_bytes : str = ''.join(quad_hex)
+        b : bytes = bytes.fromhex(hex_bytes) + self.random_bytes
+        self.key = sha256(b).digest()
