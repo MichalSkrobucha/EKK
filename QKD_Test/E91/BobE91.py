@@ -1,0 +1,27 @@
+from .Channel import Channel
+import random
+
+from .Photon import Photon
+
+
+class BobE91:
+    channel: Channel
+    bases: dict = {}
+    results: list[dict] = []
+
+    def __init__(self, channel: Channel, bases: dict):
+        self.channel = channel
+        self.channel.name = "channel_B"
+        self.bases = bases
+
+    def choose_base(self):
+        base_idx = random.choice([1, 2, 3])
+        return self.bases[base_idx]
+
+    def receive(self) -> None:
+        if len(self.channel.container) > 0:
+            photon: Photon = self.channel.read()[0]  # Only 1 photon for now
+            base_idx = random.choice([1, 2, 3])
+            angle = self.bases[base_idx]
+            bit = photon.measure(angle)
+            self.results.append({'base_idx': base_idx, 'base': angle, 'bit': bit})
