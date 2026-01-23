@@ -1,6 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QTabWidget
 
+from GUI.MACPage import MACPage
 from QKD_Algorithms.BB84.SimManager import SimManager as BB84Manager
 from QKD_Algorithms.E91.SimManager import SimManager as E91Manager
 from QKD_Algorithms.SARG04.SimManager import SimManager as SARG04Manager
@@ -36,6 +37,7 @@ class MainWindow(QMainWindow):
         self.vertical_tabs.addTab(self.create_protocol_page("BB84"), "BB84")
         self.vertical_tabs.addTab(self.create_protocol_page("SARG04"), "SARG04")
         self.vertical_tabs.addTab(self.create_protocol_page("E91"), "E91")
+        self.vertical_tabs.addTab(MACPage(), "MAC")
 
         main_layout.addWidget(self.vertical_tabs)
 

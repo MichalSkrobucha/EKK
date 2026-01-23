@@ -1,11 +1,11 @@
-* Analysis
- ** Remove Zero-Division-Error
- ** Zakładka Statistics
-
 * E91
  ** 3-Qubit attack
 
-* BB84
- ** Decoy-States @opowiedzieć, nie zaimplementować
+* Authentication
 
-* AUTH, ERR_CORR, PRIV_AMP - do finalnych
+
+* GUI
+ ** Connect to mains
+
+* Analysis
+ ** Remove Zero-Division-Error
