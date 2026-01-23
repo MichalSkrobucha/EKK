@@ -1,11 +1,13 @@
-* E91
+* E91 ~ M
  ** 3-Qubit attack
+  *** and connect to GUI
 
-* Authentication
+* Authentication Analysis ~ M
+ ** (M, T, iters) -> (given_message_guess_probability, chosen_message_guess_probability)
 
 
-* GUI
+* GUI ~ N
  ** Connect to mains
 
-* Analysis
+* Analysis ~ N
  ** Remove Zero-Division-Error
