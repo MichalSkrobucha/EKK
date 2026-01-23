@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QGroupBox,
                              QSpinBox, QDoubleSpinBox, QCheckBox, QComboBox,
                              QFormLayout, QLineEdit)
 from PyQt6.QtCore import Qt
-from QKD_Algorithms.Logger import SimLogger
+from QKD_Algorithms_OLD.Logger import SimLogger
 
 logger = SimLogger()
 

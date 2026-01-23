@@ -9,6 +9,8 @@ from GUI.AnalysisView import AnalysisView
 from SimulationView import SimulationView
 from TableView import TableView
 
+from QKD_Algorithms.Common.SimManager import SimManager
+
 
 class ProtocolPage(QWidget):
     """
@@ -17,9 +19,10 @@ class ProtocolPage(QWidget):
     """
     sig_start_loop = pyqtSignal()
 
-    def __init__(self, protocol_name, sim_manager, parent=None):
+    def __init__(self, protocol_name, sim_manager: SimManager, parent=None):
         super().__init__(parent)
         self.protocol_name = protocol_name
+        # sim_manager.logger.enable_logger(False)
 
         # --- KONFIGURACJA WĄTKU ---
         self.sim_thread = QThread()

@@ -3,50 +3,53 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from QKD_Algorithms_OLD.Logger import SimLogger
-from _simManager import _simManager
+from .SimManager import SimManager
 import pandas as pd
 import seaborn as sns
 
-logger = SimLogger()
-
 
 class Analysis:
-    def __init__(self, folder_path: str):
-        self.folder_path = folder_path
+    data_path: str = ''
 
-    def eveDependenceAnalysis(self, simManager: _simManager, n: int = 10) -> None:
+    def __init__(self, simManager: SimManager, logger: SimLogger, protocol_name="default"):
+        self.simManager = simManager
+        self.logger = logger
+        self.protocol_name = protocol_name
+        self.data_path = f'QKD_Algorithms/{protocol_name}/data/'
+
+    def eveDependenceAnalysis(self, n: int = 10) -> None:
         """
         Simulates QKD without/with Eve and shows average QBERs for both
         :param simManager: simulation Manager
         :param n: How many simulations for each scenario
         """
-        simManager.__init__()
+        self.simManager.__init__()
         # Withuot Eve
         avgQberWithoutEve: float = 0
-        simManager.ifEve = False
+        self.simManager.ifEve = False
         withoutEveResults: list[float] = []
 
-        logger.important(f"==== Starting Eve Dependence Analysis for {n} times")
+        self.logger.important(f"==== Starting Eve Dependence Analysis for {n} times")
 
         for i in range(n):
-            simManager.simLoop()
-            avgQberWithoutEve += simManager.bob.qber
-            withoutEveResults.append(simManager.bob.qber)
-            simManager.clearLists()
+            self.simManager.simLoop()
+            avgQberWithoutEve += self.simManager.bob.qber
+            withoutEveResults.append(self.simManager.bob.qber)
+            self.simManager.clearLists()
 
         # With Eve
         avgQberWithEve: float = 0
-        simManager.ifEve = True
+        self.simManager.ifEve = True
         withEveResults: list[float] = []
 
         for i in range(n):
-            simManager.simLoop()
-            avgQberWithEve += simManager.bob.qber
-            withEveResults.append(simManager.bob.qber)
-            simManager.clearLists()
+            self.simManager.simLoop()
+            avgQberWithEve += self.simManager.bob.qber
+            withEveResults.append(self.simManager.bob.qber)
+            self.simManager.clearLists()
 
-        logger.important(f"Average QBER without Eve: {avgQberWithoutEve / n}")
-        logger.important(f"Average QBER with Eve: {avgQberWithEve / n}")
+        self.logger.important(f"Average QBER without Eve: {avgQberWithoutEve / n}")
+        self.logger.important(f"Average QBER with Eve: {avgQberWithEve / n}")
 
         # Plot
         x = list(range(1, n + 1))
@@ -64,7 +67,7 @@ class Analysis:
         plt.grid(True)
         plt.show()
 
-    def dumpeningAnalysis(self, simManager: _simManager, dumpeningValues: list[float], channelLengthValues: list[float],
+    def dumpeningAnalysis(self, dumpeningValues: list[float], channelLengthValues: list[float],
                           n_tests: int = 5) -> None:
         """
             Simulates QKD for specified dumpening and channel length parameters and shows average QBERs
@@ -73,24 +76,24 @@ class Analysis:
             :param channelLengthValues: List of tested channel lengths
             :param n_tests: Number of tests for a given pair of parameters
         """
-        simManager.__init__()
-        simManager.ifEve = False
+        self.simManager.__init__()
+        self.simManager.ifEve = False
         n: int = len(dumpeningValues)
         m: int = len(channelLengthValues)
         dumpeningValues = sorted(dumpeningValues)
         channelLengthValues = sorted(channelLengthValues)
         dumpeningQBERResults: list[list[float]] = [[0 for _ in range(m)] for _ in range(n)]
 
-        logger.important(f"==== Starting Dumpening Parameter Dependence Analysis for {n_tests} times")
+        self.logger.important(f"==== Starting Dumpening Parameter Dependence Analysis for {n_tests} times")
 
         for i in range(n):
-            simManager.dumpening_per_km = dumpeningValues[i]
+            self.simManager.dumpening_per_km = dumpeningValues[i]
             for j in range(m):
-                simManager.channelLength = channelLengthValues[j]
+                self.simManager.channelLength = channelLengthValues[j]
                 for _ in range(n_tests):
-                    simManager.simLoop()
-                    dumpeningQBERResults[i][j] += simManager.bob.qber
-                    simManager.clearLists()
+                    self.simManager.simLoop()
+                    dumpeningQBERResults[i][j] += self.simManager.bob.qber
+                    self.simManager.clearLists()
                 dumpeningQBERResults[i][j] /= n_tests
 
         df = pd.DataFrame(
@@ -98,7 +101,7 @@ class Analysis:
             index=dumpeningValues,
             columns=channelLengthValues
         )
-        logger.important(f"Average QBER depending on dumpening and channel length:\n{df}")
+        self.logger.important(f"Average QBER depending on dumpening and channel length:\n{df}")
 
         # Plot
         plt.figure(figsize=(10, 6))
@@ -113,11 +116,10 @@ class Analysis:
         plt.title("QBER Heatmap: Dumpening vs Channel Length")
         plt.xlabel("Channel Length")
         plt.ylabel("Dumpening")
-        plt.savefig(self.folder_path + "dumpeningAnalysis.png", dpi=300)
+        plt.savefig(self.data_path + "dumpeningAnalysis.png", dpi=300)
         plt.show()
 
-    def baseTransformAnalysis(self, simManager: _simManager, baseTransformValues: list[float],
-                              channelLengthValues: list[float],
+    def baseTransformAnalysis(self, baseTransformValues: list[float], channelLengthValues: list[float],
                               n_tests: int = 5) -> None:
         """
             Simulates QKD for specified baseTransform and channel length parameters and shows average QBERs
@@ -126,24 +128,24 @@ class Analysis:
             :param channelLengthValues: List of tested channel lengths
             :param n_tests: Number of tests for a given pair of parameters
         """
-        simManager.__init__()
-        simManager.ifEve = False
+        self.simManager.__init__()
+        self.simManager.ifEve = False
         n: int = len(baseTransformValues)
         m: int = len(channelLengthValues)
         baseTransformValues = sorted(baseTransformValues)
         channelLengthValues = sorted(channelLengthValues)
         baseTransformQBERResults: list[list[float]] = [[0 for _ in range(m)] for _ in range(n)]
 
-        logger.important(f"==== Starting Base Transform Parameter Dependence Analysis for {n_tests} times")
+        self.logger.important(f"==== Starting Base Transform Parameter Dependence Analysis for {n_tests} times")
 
         for i in range(n):
-            simManager.base_transform_per_km = baseTransformValues[i]
+            self.simManager.base_transform_per_km = baseTransformValues[i]
             for j in range(m):
-                simManager.channelLength = channelLengthValues[j]
+                self.simManager.channelLength = channelLengthValues[j]
                 for _ in range(n_tests):
-                    simManager.simLoop()
-                    baseTransformQBERResults[i][j] += simManager.bob.qber
-                    simManager.clearLists()
+                    self.simManager.simLoop()
+                    baseTransformQBERResults[i][j] += self.simManager.bob.qber
+                    self.simManager.clearLists()
                 baseTransformQBERResults[i][j] /= n_tests
 
         df = pd.DataFrame(
@@ -151,7 +153,7 @@ class Analysis:
             index=baseTransformValues,
             columns=channelLengthValues
         )
-        logger.important(f"Average QBER depending on base transform and channel length:\n{df}")
+        self.logger.important(f"Average QBER depending on base transform and channel length:\n{df}")
 
         # Plot
         plt.figure(figsize=(10, 6))
@@ -166,11 +168,10 @@ class Analysis:
         plt.title("QBER Heatmap: Base Transform vs Channel Length")
         plt.xlabel("Channel Length")
         plt.ylabel("Base Transform")
-        plt.savefig(self.folder_path + "/baseTransformAnalysis.png", dpi=300)
+        plt.savefig(self.data_path + "/baseTransformAnalysis.png", dpi=300)
         plt.show()
 
-    def bobsErrorEffiecencyAnalysis(self, simManager: _simManager, errorValues: list[float],
-                                    efficiencyValues: list[float],
+    def bobsErrorEffiecencyAnalysis(self, errorValues: list[float], efficiencyValues: list[float],
                                     n_tests: int = 5) -> None:
         """
             Simulates QKD for specified error and eficiency parameters and shows average QBERs
@@ -179,24 +180,24 @@ class Analysis:
             :param efficiencyValues: List of tested efficiency values
             :param n_tests: Number of tests for a given pair of parameters
         """
-        simManager.__init__()
-        simManager.ifEve = False
+        self.simManager.__init__()
+        self.simManager.ifEve = False
         n: int = len(errorValues)
         m: int = len(efficiencyValues)
         errorValues = sorted(errorValues)
         efficiencyValues = sorted(efficiencyValues)
         errorQBERResults: list[list[float]] = [[0 for _ in range(m)] for _ in range(n)]
 
-        logger.important(f"==== Starting Bob's Error Parameter Dependence Analysis for {n_tests} times")
+        self.logger.important(f"==== Starting Bob's Error Parameter Dependence Analysis for {n_tests} times")
 
         for i in range(n):
-            simManager.bob.error = errorValues[i]
+            self.simManager.bob.error = errorValues[i]
             for j in range(m):
-                simManager.bob.efficiency = efficiencyValues[j]
+                self.simManager.bob.efficiency = efficiencyValues[j]
                 for _ in range(n_tests):
-                    simManager.simLoop()
-                    errorQBERResults[i][j] += simManager.bob.qber
-                    simManager.clearLists()
+                    self.simManager.simLoop()
+                    errorQBERResults[i][j] += self.simManager.bob.qber
+                    self.simManager.clearLists()
                 errorQBERResults[i][j] /= n_tests
 
         df = pd.DataFrame(
@@ -204,7 +205,7 @@ class Analysis:
             index=errorValues,
             columns=efficiencyValues
         )
-        logger.important(f"Average QBER depending on error and efficiency:\n{df}")
+        self.logger.important(f"Average QBER depending on error and efficiency:\n{df}")
 
         # Plot
         plt.figure(figsize=(10, 6))
@@ -219,5 +220,5 @@ class Analysis:
         plt.title("QBER Heatmap: Error vs Efficiency")
         plt.xlabel("Efficiency")
         plt.ylabel("Error")
-        plt.savefig(self.folder_path + "/bobsErrorEffiecencyAnalysis.png", dpi=300)
+        plt.savefig(self.data_path + "/bobsErrorEffiecencyAnalysis.png", dpi=300)
         plt.show()

@@ -14,40 +14,38 @@ class SimLogger:
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
 
-        self.logger.propagate = False
+        # standardowy handler
+        self.full_handler = logging.StreamHandler(sys.stdout)
+        self.full_handler.setLevel(level)
+        full_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        self.full_handler.setFormatter(full_formatter)
+        self.logger.addHandler(self.full_handler)
 
-        if self.logger.hasHandlers():
-            self.logger.handlers.clear()
+        # plain handler
+        self.plain_handler = logging.StreamHandler(sys.stdout)
+        self.plain_handler.setLevel(level)
+        plain_formatter = logging.Formatter('%(message)s')
+        self.plain_handler.setFormatter(plain_formatter)
+        self.logger.addHandler(self.plain_handler)
 
-        self.main_handler = logging.StreamHandler(sys.stdout)
-        self.main_handler.setLevel(level)
-        self.logger.addHandler(self.main_handler)
-
-        self.full_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        self.plain_formatter = logging.Formatter('%(message)s')
-
-        # --- Konfiguracja Important Logger ---
+        # always handler
         self.important_logger = logging.getLogger("ImportantSimLogger")
         self.important_logger.setLevel(logging.DEBUG)
-        self.important_logger.propagate = False
-
-        if self.important_logger.hasHandlers():
-            self.important_logger.handlers.clear()
-
         ih = logging.StreamHandler(sys.stdout)
         ih.setFormatter(logging.Formatter('%(message)s'))
         self.important_logger.addHandler(ih)
 
-        # Ustawiamy domyślny format
         self.use_plain = False
         self.use_plain_format(self.use_plain)
 
+    def _update_handlers(self) -> None:
+        # Włącza tylko jeden z handlerów
+        self.full_handler.setLevel(logging.DEBUG if not self.use_plain else logging.WARNING)
+        self.plain_handler.setLevel(logging.DEBUG if self.use_plain else logging.WARNING)
+
     def use_plain_format(self, plain: bool = True) -> None:
         self.use_plain = plain
-        if self.use_plain:
-            self.main_handler.setFormatter(self.plain_formatter)
-        else:
-            self.main_handler.setFormatter(self.full_formatter)
+        self._update_handlers()
 
     def enable_logger(self, enabled: bool = True) -> None:
         if enabled:

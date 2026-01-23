@@ -20,7 +20,10 @@ class SimControllerPanel(QWidget):
         # --- Layout ---
         self.create_layout()
 
-    def create_layout(self, min_val=10, max_val=200, default_val=100):
+    def create_layout(self, min_val=10, max_val=500, default_val=100):
+        self.min_val = min_val
+        self.max_val = max_val
+
         # --- LAYOUT ---
         controller_frame = QFrame()
         controller_frame.setStyleSheet(f"background-color: {COLORS['bg_selected']}; border-radius: 5px;")
@@ -49,7 +52,6 @@ class SimControllerPanel(QWidget):
 
         # Action
         self.btn_play.clicked.connect(self.on_play_clicked)
-        self.btn_play.clicked.connect(self.sig_play.emit)
         self.btn_reset.clicked.connect(self.sig_reset.emit)
         self.btn_prev.clicked.connect(self.sig_prev.emit)
         self.btn_next.clicked.connect(self.sig_next.emit)
@@ -68,14 +70,15 @@ class SimControllerPanel(QWidget):
         controller_layout.addStretch(stretch=2)
         self.setLayout(controller_layout)
 
-    def handle_speed_change(self, value, step=10):
+    def handle_speed_change(self, value, step=100):
         rounded_val = round(value / step) * step
         if self.speed_slider.value() != rounded_val:
-            self.speed_slider.setValue(rounded_val)
+            self.speed_slider.setValue(min(max(self.min_val, rounded_val), self.max_val))
             self.speed_label.setText(f"{rounded_val} %")
 
     def on_play_clicked(self):
         self.is_running = not self.is_running
+        self.sig_play.emit()
         # Aktualizacja wyglądu
         update_play_button_visuals(self.btn_play, self.is_running)
 

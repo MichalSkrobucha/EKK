@@ -2,9 +2,9 @@ import sys
 from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QTabWidget
 
 from GUI.MACPage import MACPage
-from QKD_Algorithms.BB84.SimManager import SimManager as BB84Manager
-from QKD_Algorithms.E91.SimManager import SimManager as E91Manager
-from QKD_Algorithms.SARG04.SimManager import SimManager as SARG04Manager
+from QKD_Algorithms.BB84.SimManagerBB84 import SimManagerBB84
+from QKD_Algorithms.E91.SimManagerE91 import SimManagerE91
+from QKD_Algorithms.SARG04.SimManagerSARG import SimManagerSARG
 from ProtocolPage import ProtocolPage
 from style import STYLESHEET
 
@@ -46,11 +46,11 @@ class MainWindow(QMainWindow):
         sim_manager = None
 
         if protocol_name == "BB84":
-            sim_manager = BB84Manager()
+            sim_manager = SimManagerBB84()
         elif protocol_name == "E91":
-            sim_manager = E91Manager()
+            sim_manager = SimManagerE91()
         elif protocol_name == "SARG04":
-            sim_manager = SARG04Manager()
+            sim_manager = SimManagerSARG()
 
         if sim_manager:
             page = ProtocolPage(protocol_name, sim_manager)
