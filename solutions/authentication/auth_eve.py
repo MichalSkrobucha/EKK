@@ -3,12 +3,14 @@ from random import choice
 
 
 class eve:
-    def __init__(self, M: int, T: int, hashes: list[tuple[int, int]]):
+    def __init__(self, M: int, T: int, p: int, possible_hashes: list[tuple[int, int]]):
         self.M: int = M
         self.T: int = T
 
-        self.possible_hashes: list[tuple[int, int]] = hashes
+        self.possible_hashes: list[tuple[int, int]] = possible_hashes
         self.eavesdropped_mt: list[tuple[int, int]] = []
+
+        self.hash: hash = hash(M, T, 0, 0, p)
 
     def eavesdrop(self, mt: tuple[int, int]):
         for emt in self.eavesdropped_mt:
@@ -21,10 +23,11 @@ class eve:
         possible_hashes: list[tuple[int, int]] = []
 
         for (q, r) in self.possible_hashes:
-            h: hash = hash(self.M, self.T, q, r)
+            self.hash.q = q
+            self.hash.r = r
 
             for (m, t) in self.eavesdropped_mt:
-                if h(m) != t:
+                if self.hash(m) != t:
                     break
                 else:
                     pass
