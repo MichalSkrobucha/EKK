@@ -1,4 +1,4 @@
-from .Photon import Photon, Entanglemet_Controller
+from .Photon import Photon, EntanglemetController
 from QKD_Algorithms.Logger import SimLogger
 from random import random
 
@@ -49,7 +49,7 @@ class Source:
 
     def generate(self):
         photons: list[Photon] = [Photon() for _ in range(self.n)]
-        controller: Entanglemet_Controller = Entanglemet_Controller(photons, self.roll_for_distribution())
+        controller: EntanglemetController = EntanglemetController(photons, self.roll_for_distribution())
         # controller adds itself as reference to each photon - do not remove
 
         return tuple(photons)

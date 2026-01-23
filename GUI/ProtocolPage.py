@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from PyQt6.QtCore import QThread
 from PyQt6.QtCore import Qt, pyqtSignal
 
+from GUI.StatisticsView import StatisticsView
 from SimWorker import SimWorker
 from GUI.AnalysisView import AnalysisView
 from SimulationView import SimulationView
@@ -42,6 +43,8 @@ class ProtocolPage(QWidget):
         self.horiz_tabs.addTab(self.tab_view, "TABLE")
         self.analysis_view = AnalysisView(parent=self)
         self.horiz_tabs.addTab(self.analysis_view, "ANALYSIS")
+        self.statistics_view = StatisticsView(parent=self)
+        self.horiz_tabs.addTab(self.statistics_view, "STATISTICS")
 
         layout.addWidget(self.horiz_tabs)
         self.setLayout(layout)
