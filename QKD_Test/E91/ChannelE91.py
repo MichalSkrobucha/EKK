@@ -1,5 +1,5 @@
-from QKD_Algorithms.Logger import SimLogger
-import PhotonE91 as Photon
+from Logger import SimLogger
+from .PhotonE91 import PhotonE91 as Photon
 
 
 class ChannelE91:

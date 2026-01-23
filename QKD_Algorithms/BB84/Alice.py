@@ -168,7 +168,7 @@ class Alice:
         self.keyBits += [0] * kb_pad
 
         self.max_length = len(self.keyBits) // 2
-        self.start_length = ceil (1 / (self.qber + 1 / len(self.keyBits)))  # TODO
+        self.start_length = ceil (1 / (self.qber + 1 / len(self.keyBits)))
 
     def permute(self) -> list[int]:
         """Alicja generuje permutacje"""

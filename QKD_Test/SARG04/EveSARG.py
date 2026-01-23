@@ -1,9 +1,9 @@
 from random import randint
 from typing import override
 
-from .Channel import Channel
-from QKD_Algorithms.Logger import SimLogger
-from QKD_Algorithms.Common import Eve
+from Common.Eve import Eve
+from Logger import SimLogger
+from Common.Channel import Channel
 
 
 class EveSARG(Eve):

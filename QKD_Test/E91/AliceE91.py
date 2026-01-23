@@ -1,17 +1,18 @@
+from .ChannelE91 import ChannelE91 as Channel
+from Logger import SimLogger
 import random
-from .Channel import Channel
-from .Photon import Photon
+from .PhotonE91 import PhotonE91 as Photon
+from Common.Alice import Alice
 
 
-class AliceE91:
-    channel: Channel
+class AliceE91(Alice):
     bases: dict = {}
     results: list[dict] = []
 
-    def __init__(self, channel: Channel, bases: dict):
-        self.channel = channel
+    def __init__(self, bases: dict, channel: Channel, logger: SimLogger):
+        super().__init__(0, channel, None, logger)
         self.channel.name = "channel_A"
-        self.bases = bases
+        self.bases: dict = bases
 
     def receive(self) -> None:
         if len(self.channel.container) > 0:

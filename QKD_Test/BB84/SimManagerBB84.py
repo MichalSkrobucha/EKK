@@ -1,58 +1,18 @@
 import pandas as pd
-from .Alice import Alice
-from .Bob import Bob
-from .Eve import Eve
-from .Channel import Channel
-from QKD_Algorithms.Logger import SimLogger
+from DIContainers import BB84Container
+from Common.SimManager import SimManager
 
 
-class SimManagerBB84:
-    sim_start: int = 0
-    sim_end: int = 1000
-    sim_step: int
-    qberThreshhold: float = 0.2
-    ifEve: bool = True
-    is_running: bool = False
-    logs: bool = True
-
-    channel_length: float = 1.0  # km
-    dumpening_per_km: float = 0.2  # dB/ km
-    base_transform_per_km: float = 0.2  # db / km
-
-    dumpening_dB: float = dumpening_per_km * channel_length
-    base_transform_dB: float = base_transform_per_km * channel_length
-
-    dumpening: float = 1 - 10 ** (-dumpening_dB / 10.0)
-    base_transform: float = 1 - 10 ** (-base_transform_dB / 10.0)
-
-    channel: Channel
-    alice: Alice
-    bob: Bob
-    eve: Eve
-
+class SimManagerBB84(SimManager):
     def __init__(self):
-        self.reloadBaseValues()
-        self.channel = Channel(self.dumpening, self.base_transform)
-        self.alice = Alice(self.channel, 0.5)
-        self.bob = Bob(self.channel, 0.99, 0.01)
-        self.eve = Eve(self.channel)
-        self.sim_step = self.sim_start
+        # self.reloadBaseValues()
+        channel = self.channel = BB84Container.channel(self.dumpening, self.base_transform)
+        alice = BB84Container.alice(mi=0.5)
+        bob = BB84Container.bob(efficiency=0.99, error=0.01)
+        eve = BB84Container.eve()
+        logger = BB84Container.logger()
 
-        self.logger = SimLogger()
-        self.logger.set_time(self.sim_start)
-
-    def reloadBaseValues(self):
-        self.channel_length: float = 1.0  # km
-        self.dumpening_per_km: float = 0.2  # dB/ km
-        self.base_transform_per_km: float = 0.2  # db / km
-
-    def clearLists(self) -> None:
-        """
-        Empties all lists
-        """
-        self.alice.clearLists()
-        self.bob.clearLists()
-        self.eve.clearLists()
+        super().__init__(channel, alice, bob, eve, logger)
 
     def simLoop(self):
         """
@@ -63,11 +23,48 @@ class SimManagerBB84:
                    f'Total rates are {self.dumpening_dB} dB of dumpening and {self.base_transform_per_km} dB of base_transform\n'
                    f'Probability of events (per photon) are {self.dumpening} for dumpening and {self.base_transform_per_km} for base_transform')
 
-        for step in range(self.sim_start, self.sim_end):
-            # Alice sends bits (impulses of photons) to Bob
-            self.sim_transmition_step()
+        self.is_running = True
+        while self.is_running:
+            self.sim_next_step()
 
-        self.logger.msg(f"=====================")
+    def checkCorrectness(self):
+        alice_bits = self.alice.sievedBits
+        bob_bits = self.bob.sievedBits
+        eve_bits = self.eve.sieved_bits
+
+        bob_correct_bits = len([1 for (a, b) in zip(alice_bits, bob_bits) if a == b])
+        eve_has_bits = len([1 for e in eve_bits if e != -1])
+        eve_correct_bits = len([1 for (a, e) in zip(alice_bits, eve_bits) if a == e])
+
+        print(
+            f'Alice and Bob have {len(alice_bits)} each and Bob has {bob_correct_bits} correct ({bob_correct_bits / len(alice_bits):.4f})\n'
+            f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
+
+    def sim_next_step(self):
+        self.logger.set_time(self.sim_step)
+        if self.sim_step < self.sim_end:
+            self._sim_transmition_step()
+        elif self.sim_step == self.sim_end:
+            self.logger.msg(f"=====================")
+            self._sim_bases_exchange_step()
+        elif self.sim_step == self.sim_end + 1:
+            self._sim_sieve_step()
+        elif self.sim_step == self.sim_end + 2:
+            self._sim_sampling_step()
+            self._sim_calculate_qber()
+        elif self.sim_step == self.sim_end + 3:
+            self.alice.prepareForErrorCorrection()
+            self.bob.prepareForErrorCorrection()
+        elif self.sim_step == self.sim_end + 4:
+            self._run_error_correction()
+        elif self.sim_step == self.sim_end + 5:
+            self._run_privacy_amplification()
+        else:
+            self.is_running = False
+            return
+        self.sim_step += 1
+
+    def _sim_bases_exchange_step(self):
         # Basis exchange
         basesA: list[int] = self.alice.sendBases()
         basesB: list[int] = self.bob.sendBases()
@@ -78,31 +75,13 @@ class SimManagerBB84:
         if self.ifEve:
             self.eve.eavesdrop_bases(basesA, basesB)
 
+    def _sim_sieve_step(self):
         # Sieving
         self.bob.sieveBits()
         self.alice.sieveBits()
 
         if self.ifEve:
             self.eve.print_sieved_bits()
-
-        # Bob decides sampleIDs
-        self.alice.getSampleIds(self.bob.sendSampleIds())
-        # Sample exchange
-        self.alice.recieveSamples(self.bob.sendSample())
-        self.bob.receiveSamples(self.alice.sendSample())
-        # QBER calculation
-        self.alice.calculateQBER()
-        self.bob.calculateQBER()
-
-        if self.bob.qber > self.qberThreshhold:
-            # QBER is NOT accepatable
-            self.logger.log("QBER exceeded threshhold. Ending transmission")
-            return
-
-        # QBER is accepatable
-
-        # Here will be error correction
-        pass
 
     def printTable(self, fname: str = "QKD_Algorithms/BB84/data/bb84_data.csv"):
         """
@@ -131,77 +110,4 @@ class SimManagerBB84:
         df.to_csv(fname, index=False)
         print("\n", df)
 
-    def checkCorrectness(self):
-        alice_bits = self.alice.sievedBits
-        bob_bits = self.bob.sievedBits
-        eve_bits = self.eve.sieved_bits
 
-        bob_correct_bits = len([1 for (a, b) in zip(alice_bits, bob_bits) if a == b])
-        eve_has_bits = len([1 for e in eve_bits if e != -1])
-        eve_correct_bits = len([1 for (a, e) in zip(alice_bits, eve_bits) if a == e])
-
-        print(
-            f'Alice and Bob have {len(alice_bits)} each and Bob has {bob_correct_bits} correct ({bob_correct_bits / len(alice_bits):.4f})\n'
-            f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
-
-    def sim_next_step(self):
-        if self.sim_step < self.sim_end:
-            self.sim_transmition_step()
-        elif self.sim_step == self.sim_end:
-            self.sim_bases_exchange_step()
-        elif self.sim_step == self.sim_end + 1:
-            self.sim_bases_exchange_step()
-        elif self.sim_step == self.sim_end + 2:
-            self.sim_sieve_step()
-        elif self.sim_step == self.sim_end + 3:
-            self.sim_sampling_step()
-            self.sim_calculate_qber()
-        else:
-            self.is_running = False
-            return
-        self.sim_step += 1
-
-    def sim_transmition_step(self):
-        self.logger.set_time(self.sim_step)
-        self.alice.send_key()
-
-        if self.ifEve:
-            self.eve.eavesdrop()
-
-        self.bob.receive()
-
-    def sim_bases_exchange_step(self):
-        # Basis exchange
-        basesA: list[int] = self.alice.sendBases()
-        basesB: list[int] = self.bob.sendBases()
-
-        self.bob.receiveBases(basesA)
-        self.alice.receiveBases(basesB)
-
-        if self.ifEve:
-            self.eve.eavesdrop_bases(basesA, basesB)
-
-    def sim_sieve_step(self):
-        # Sieving
-        self.bob.sieveBits()
-        self.alice.sieveBits()
-
-        if self.ifEve:
-            self.eve.print_sieved_bits()
-
-    def sim_sampling_step(self):
-        # Bob decides sampleIDs
-        self.alice.getSampleIds(self.bob.sendSampleIds())
-        # Sample exchange
-        self.alice.recieveSamples(self.bob.sendSample())
-        self.bob.receiveSamples(self.alice.sendSample())
-
-    def sim_calculate_qber(self):
-        # QBER calculation
-        self.alice.calculateQBER()
-        self.bob.calculateQBER()
-
-        if self.bob.qber > self.qberThreshhold:
-            # QBER is NOT accepatable
-            self.logger.log("QBER exceeded threshhold. Ending transmission")
-            return

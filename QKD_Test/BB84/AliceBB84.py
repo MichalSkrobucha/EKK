@@ -1,12 +1,13 @@
-from QKD_Algorithms.Logger import SimLogger
-from ..Common import Alice
+from Common.Alice import Alice
+from Logger import SimLogger
+from Common.Channel import Channel
 
 
 class AliceBB84(Alice):
     """
 
     """
-    def __init__(self, mi: float, channel, photon_factory, logger):
+    def __init__(self, mi: float, channel: Channel, photon_factory, logger: SimLogger):
         """
         :param channel: Channel on which Alice and Bob are communicating
         :param mi: Average amount of photons in impulse
@@ -36,6 +37,8 @@ class AliceBB84(Alice):
         for (a, b, bit) in zip(self.bases, self.bobBases, self.bits):
             if a == b:
                 self.sievedBits.append(bit)
-
+        self.keyBits
         self.logger.log(
             f"Alice sieved her measurments (based on her and Bob's bases) and got {len(self.sievedBits)} bits: {self.sievedBits}")
+
+

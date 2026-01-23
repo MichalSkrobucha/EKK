@@ -1,24 +1,22 @@
 from typing import override
-
+from Common.Alice import Alice
 from numpy.random import poisson
 from random import randint
-from .Channel import Channel
-from QKD_Algorithms.Logger import SimLogger
-from .Photon import Photon
-from QKD_Algorithms.Common import Alice
+from Common.Photon import Photon
+from Logger import SimLogger
+from Common.Channel import Channel
 
 
 class AliceSARG(Alice):
     """
 
     """
-
-    def __init__(self, channel: Channel, mi: float, logger: SimLogger):
+    def __init__(self, mi: float, channel: Channel, photon_factory, logger: SimLogger):
         """
         :param channel: Channel on which Alice and Bob are communicating
         :param mi: Average amount of photons in impulse
         """
-        super().__init__(channel, mi, logger)
+        super().__init__(mi, channel, photon_factory, logger)
         self.possibleStates: list[tuple[int, int]] = []
         self.sendBases: list[int] = []
         self.keyBits: list[int] = []
@@ -73,5 +71,4 @@ class AliceSARG(Alice):
     def getUsedStates(self, states: list[int]) -> None:
         for i in states:
             self.keyBits.append(self.possibleStates[i][self.sendBases[i]])
-
         self.logger.log(f'Alice got {len(self.keyBits)} bits of key')

@@ -1,18 +1,15 @@
-from .SimManager import SimManager
-from QKD_Algorithms.Logger import SimLogger
-
-logger = SimLogger()
+from SimManagerE91 import SimManagerE91 as SimManager
 
 
-def main() -> None:
+def run_simulation() -> None:
     """
     Runs the simulation
     """
     simManager: SimManager = SimManager()
-    logger.enable_logger(True)  # Włączenie logów
+    simManager.logger.enable_logger(True)  # Włączenie logów
     # Simulation test
     simManager.simLoop()
 
 
 if __name__ == '__main__':
-    main()
+    run_simulation()

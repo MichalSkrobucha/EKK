@@ -1,115 +1,30 @@
 import pandas as pd
-from .Alice import Alice
-from .Bob import Bob
-from .Eve import Eve
-from .Channel import Channel
-from QKD_Algorithms.Logger import SimLogger
+from Common.SimManager import SimManager
+from DIContainers import SARGContainer
 
-logger = SimLogger()
-
-
-class SimManager:
-    sim_start: int = 0
-    sim_step: int = 1
-    sim_end: int = 1000
-    qberThreshhold: float = 0.2
-    ifEve: bool = True
-    logs: bool = True
-
-    channel_length: float = 1.0  # km
-    dumpening_per_km: float = 0.2  # dB/ km
-    base_transform_per_km: float = 0.2  # db / km
-
-    dumpening_dB: float = dumpening_per_km * channel_length
-    base_transform_dB: float = base_transform_per_km * channel_length
-
-    dumpening: float = 1 - 10 ** (-dumpening_dB / 10.0)
-    base_transform: float = 1 - 10 ** (-base_transform_dB / 10.0)
-
-    channel: Channel
-    alice: Alice
-    bob: Bob
-    eve: Eve
-
+class SimManagerSARG(SimManager):
     def __init__(self):
-        self.reloadBaseValues()
-        self.channel = Channel(self.dumpening, self.base_transform)
-        self.alice = Alice(self.channel, 0.5)
-        self.bob = Bob(self.channel, 0.99, 0.01)
-        self.eve = Eve(self.channel)
-        logger.set_time(self.sim_start)
+        # self.reloadBaseValues()
+        channel = self.channel = SARGContainer.channel(self.dumpening, self.base_transform)
+        alice = SARGContainer.alice(mi=0.5)
+        bob = SARGContainer.bob(efficiency=0.99, error=0.01)
+        eve = SARGContainer.eve()
+        logger = SARGContainer.logger()
 
-    def reloadBaseValues(self):
-        self.channel_length: float = 1.0  # km
-        self.dumpening_per_km: float = 0.2  # dB/ km
-        self.base_transform_per_km: float = 0.2  # db / km
-
-    def clearLists(self) -> None:
-        """
-        Empties all lists
-        """
-        self.alice.clearLists()
-        self.bob.clearLists()
-        self.eve.clearLists()
+        super().__init__(channel, alice, bob, eve, logger)
 
     def simLoop(self):
         """
         Simulates QKD (du-uh)
         """
-        logger.log(f'\nSimulating channel of length {self.channel_length} km\n'
-                   f'with dumpening rate {self.dumpening_per_km} dB/km and base_transform rate {self.base_transform_per_km} dB/km\n'
-                   f'Total rates are {self.dumpening_dB} dB of dumpening and {self.base_transform_per_km} dB of base_transform\n'
-                   f'Probability of events (per photon) are {self.dumpening} for dumpening and {self.base_transform_per_km} for base_transform')
+        self.logger.log(f'\nSimulating channel of length {self.channel_length} km\n'
+                        f'with dumpening rate {self.dumpening_per_km} dB/km and base_transform rate {self.base_transform_per_km} dB/km\n'
+                        f'Total rates are {self.dumpening_dB} dB of dumpening and {self.base_transform_per_km} dB of base_transform\n'
+                        f'Probability of events (per photon) are {self.dumpening} for dumpening and {self.base_transform_per_km} for base_transform')
 
-        for step in range(self.sim_start, self.sim_end, self.sim_step):
-            # Alice sends bits (impulses of photons) to Bob
-            logger.msg(f"=====================")
-            logger.set_time(step)
-
-            self.alice.send_key()
-
-            if self.ifEve:
-                self.eve.eavesdrop()
-
-            self.bob.recieve()
-
-        logger.msg(f"=====================")
-        # BStates Announce
-        statesAnnounced: list[tuple[int, int]] = self.alice.announceStates()
-
-        self.bob.recieveStates(statesAnnounced)
-
-        if self.ifEve:
-            self.eve.eavesdropStates(statesAnnounced)
-
-        # Sieving
-        self.bob.sieveStates()
-
-        usedStates: list[int] = self.bob.announceUsedStates()
-
-        if self.ifEve:
-            self.eve.eavsdropUsedStates(usedStates)
-
-        self.alice.getUsedStates(usedStates)
-
-        # Bob decides sampleIDs
-        self.alice.getSampleIds(self.bob.sendSampleIds())
-        # Sample exchange
-        self.alice.recieveSamples(self.bob.sendSample())
-        self.bob.receiveSamples(self.alice.sendSample())
-        # QBER calculation
-        self.alice.calculateQBER()
-        self.bob.calculateQBER()
-
-        if self.bob.qber > self.qberThreshhold:
-            # QBER is NOT accepatable
-            logger.log("QBER exceeded threshhold. Ending transmission")
-            return
-
-        # QBER is accepatable
-
-        # Here will be error correction
-        pass
+        self.is_running = True
+        while self.is_running:
+            self.sim_next_step()
 
     def printTable(self, fname: str = "QKD_Algorithms/SARG04/data/bb84_data.csv"):
         """
@@ -140,3 +55,44 @@ class SimManager:
         df = df.transpose()
         df.to_csv(fname, index=False)
         print("\n", df)
+
+    def sim_next_step(self):
+        self.logger.set_time(self.sim_step)
+        if self.sim_step < self.sim_end:
+            self._sim_transmition_step()
+        elif self.sim_step == self.sim_end:
+            self.logger.msg(f"=====================")
+            self._anounce_states_step()
+        elif self.sim_step == self.sim_end + 1:
+            self._sieve_used_states()
+        elif self.sim_step == self.sim_end + 2:
+            self._sim_sampling_step()
+            self._sim_calculate_qber()
+        elif self.sim_step == self.sim_end + 3:
+            self.alice.prepareForErrorCorrection()
+            self.bob.prepareForErrorCorrection()
+        elif self.sim_step == self.sim_end + 4:
+            self._run_error_correction()
+        elif self.sim_step == self.sim_end + 5:
+            self._run_privacy_amplification()
+        else:
+            self.is_running = False
+            return
+        self.sim_step += 1
+
+    def _anounce_states_step(self):
+        statesAnnounced: list[tuple[int, int]] = self.alice.announceStates()
+        self.bob.recieveStates(statesAnnounced)
+
+        if self.ifEve:
+            self.eve.eavesdropStates(statesAnnounced)
+
+    def _sieve_used_states(self):
+        self.bob.sieveStates()
+        usedStates: list[int] = self.bob.announceUsedStates()
+
+        if self.ifEve:
+            self.eve.eavsdropUsedStates(usedStates)
+
+        self.alice.getUsedStates(usedStates)
+

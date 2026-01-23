@@ -1,61 +1,70 @@
-from .Alice import Alice
-from .Bob import Bob
-from.Channel import Channel
-from .Source import Source
-from QKD_Algorithms.Logger import SimLogger
 import math
+from typing import override
 from itertools import combinations
+from DIContainers import E91Container
+from Common.SimManager import SimManager
 
-logger = SimLogger()
 
-
-class SimManager:
-    sim_start: int = 0
-    sim_step: int = 1
-    sim_end: int = 100
-    qberThreshhold: float = 0.2
-    ifEve: bool = True
-    logs: bool = True
-
+class SimManagerE91(SimManager):
     BASES_ALICE = {1: 0, 2: 22.5, 3: 45}
     BASES_BOB = {1: 22.5, 2: 45, 3: 67.5}
 
     def __init__(self):
-        self.channel_alice = Channel()
-        self.channel_bob = Channel()
+        self.channel_alice = E91Container.channel_A()
+        self.channel_bob = E91Container.channel_B()
+        alice = E91Container.alice(self.BASES_ALICE)
+        bob = E91Container.bob(self.BASES_BOB)
+        self.source = E91Container.source()
+        logger = E91Container.logger()
 
-        self.alice = Alice(self.channel_alice, self.BASES_ALICE)
-        self.bob = Bob(self.channel_bob, self.BASES_BOB)
-        logger.set_time(self.sim_start)
+        super().__init__(None, alice, bob, None, logger)
 
     def simLoop(self):
         """
         Simulates QKD (du-uh)
         """
-        source = Source()
+        self.is_running = True
+        while self.is_running:
+            self.sim_next_step()
 
         for step in range(self.sim_start, self.sim_end, self.sim_step):
             # Alice sends bits (impulses of photons) to Bob
-            logger.msg(f"=====================")
-            logger.set_time(step)
-            # Generating pair
-            photon_A, photon_B = source.generate()
-            self.channel_alice.send([photon_A])
-            self.channel_bob.send([photon_B])
+            self.sim_next_step()
 
-            self.alice.receive()
-            self.bob.receive()
+    def sim_next_step(self):
+        self.logger.set_time(self.sim_step)
+        if self.sim_step < self.sim_end:
+            self._sim_transmition_step()
+            self.logger.msg(f"---")
+        elif self.sim_step == self.sim_end:
+            self.logger.msg(f"=====================")
+            self._sim_analysis_step()
+        else:
+            self.is_running = False
+            return
+        self.sim_step += 1
 
+    @override
+    def _sim_transmition_step(self):
+        # Generating pair
+        photon_A, photon_B = self.source.generate()
+        self.channel_alice.send([photon_A])
+        self.channel_bob.send([photon_B])
+
+        self.alice.receive()
+        self.bob.receive()
+
+    def _sim_analysis_step(self):
         print("\n________________________")
         print("--- EKSPERYMENTALNIE ---")
         print("________________________")
-        self.analyze_results()
+        self._analyze_results()
         print("\n____________________")
         print("--- TEORETYCZNIE ---")
         print("____________________\n")
-        self.theoretical_result()
+        self._theoretical_result()
 
-    def analyze_results(self):  # Eksperymentalnie liczona nierówność Bella
+    def _analyze_results(self):  # Eksperymentalnie liczona nierówność Bella
         """
         Faza Sifting i Testu Bella.
         Alicja i Bob ujawniają bazy i sortują wyniki.
@@ -125,7 +134,7 @@ class SimManager:
         else:
             print(">> OSTRZEŻENIE: Brak kwantowych korelacji lub zbyt duży szum.")
 
-    def theoretical_result(self):
+    def _theoretical_result(self):
         def get_theoretical_E(angle_a_deg, angle_b_deg):
             theta_A = math.radians(angle_a_deg)
             theta_B = math.radians(angle_b_deg)
@@ -171,3 +180,30 @@ class SimManager:
             print("\n>> SUKCES: Wynik łamie nierówność Bella.")
         else:
             print("\n>> UWAGA: Coś nie tak z kątami.")
+
+    @override
+    def _run_privacy_amplification(self):
+
+        print('\n--- PRIVACY AMPLIFICATION ---\n')
+
+        alice = self.alice
+        bob = self.bob
+
+        print(f'Alice and Bob have {len(self.alice.keyBits)} bits\n')
+
+        # wzmocnienie prywatności
+        r_bytes: bytes = alice.send_random_bytes()
+        bob.get_random_bytes(r_bytes)
+
+        print(f'Alice send random bytes ({alice.bytes_count}): {alice.random_bytes.hex()}\n')
+
+        alice.get_final_key()
+        bob.get_final_key()
+
+        print('Alice and Bob calculate final key')
+
+        print(f'A: {alice.key.hex()}\n'
+              f'B: {bob.key.hex()}\n'
+              f'Keys match: {alice.key == bob.key}')
+
+

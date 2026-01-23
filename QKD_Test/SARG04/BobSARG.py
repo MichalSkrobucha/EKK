@@ -1,23 +1,20 @@
 from typing import override
-
-from .Channel import Channel
-from QKD_Algorithms.Logger import SimLogger
-from .Photon import Photon
-from random import randint, binomialvariate, shuffle
-from QKD_Algorithms.Common import Bob
+from Common.Bob import Bob
+from Logger import SimLogger
+from Common.Channel import Channel
+from math import ceil
 
 
 class BobSARG(Bob):
-    def __init__(self, channel: Channel, efficiency: float, error: float, logger: SimLogger) -> None:
+    def __init__(self, efficiency: float, error: float, channel: Channel, logger: SimLogger) -> None:
         """
         :param channel: Channel on which Alice and Bob are communicating
         :param efficiency: How often detectors react to photons (properly)
         :param error: How often detectors click without photon
         """
-        super().__init__(channel, efficiency, error, logger)
+        super().__init__(efficiency, error, channel, logger)
         self.aliceStates: list[tuple[int, int]] = []  # 1st - computational basis, 2nd - Hadamard basis
         self.keyIDs: list[int] = []
-        self.keyBits: list[int] = []
 
     @override
     def clearLists(self) -> None:
@@ -28,7 +25,6 @@ class BobSARG(Bob):
         self.bits.clear()
         self.aliceStates.clear()
         self.keyIDs.clear()
-        self.keyBits.clear()
         self.sampleIds.clear()
         self.aliceSample.clear()
         self.bobSample.clear()
@@ -43,7 +39,6 @@ class BobSARG(Bob):
                 if alice[base] != bit:
                     self.keyIDs.append(i)
                     self.keyBits.append(alice[1 - base])
-
         self.logger.log(f'Bob got {len(self.keyBits)} bits of key')
 
     def announceUsedStates(self) -> list[int]:

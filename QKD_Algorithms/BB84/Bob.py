@@ -225,7 +225,7 @@ class Bob:
         Sends IDs of bits which are to used as samples (for QBER)
         :return sampleIds: IDs of bits (no need for order)
         """
-        l: int = len(self.sievedBits)
+        l: int = len(self.keyBits)
         ids: list[int] = list(range(l))
         shuffle(ids)
 
@@ -241,7 +241,7 @@ class Bob:
         :return: List of Bobs's sample bits (in order of IDs in its respective list)
         """
         for i in self.sampleIds:
-            self.bobSample.append(self.sievedBits[i])
+            self.bobSample.append(self.keyBits[i])
 
         self.logger.log("Bob is sending his samples to Alice")
 
@@ -272,15 +272,17 @@ class Bob:
         self.logger.log(f"Bob is calculating QBER: {self.qber}")
 
     def prepareForErrorCorrection(self):
-        for i in range(len(self.sievedBits)):
+        sievedBits = list(self.keyBits)
+
+        for i in range(len(sievedBits)):
             if i not in self.sampleIds:
-                self.keyBits.append(self.sievedBits[i])
+                self.keyBits.append(sievedBits[i])
 
         kb_pad: int = 0 if len(self.keyBits) % 8 == 0 else 8 - len(self.keyBits) % 8
         self.keyBits += [0] * kb_pad
 
         self.max_length = len(self.keyBits) // 2
-        self.start_length = ceil (1 / (self.qber + 1 / len(self.keyBits)))
+        self.start_length = ceil(1 / (self.qber + 1 / len(self.keyBits)))
 
     def get_alice_permutation(self, permutation: list[int]):
         """Bob odbiera permutację Alicji i dzieli permutuje swój klucz"""

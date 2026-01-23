@@ -1,27 +1,26 @@
-from .Channel import Channel
+from .ChannelE91 import ChannelE91 as Channel
 import random
+from Logger import SimLogger
+from .PhotonE91 import PhotonE91 as Photon
+from Common.Bob import Bob
 
-from .Photon import Photon
 
-
-class BobE91:
-    channel: Channel
+class BobE91(Bob):
     bases: dict = {}
     results: list[dict] = []
 
-    def __init__(self, channel: Channel, bases: dict):
-        self.channel = channel
+    def __init__(self, bases: dict, channel: Channel, logger: SimLogger):
+        super().__init__(0, 0, channel, logger)
         self.channel.name = "channel_B"
-        self.bases = bases
+        self.bases: dict = bases
 
-    def choose_base(self):
+    def _choose_base(self):
         base_idx = random.choice([1, 2, 3])
-        return self.bases[base_idx]
+        return base_idx, self.bases[base_idx]
 
     def receive(self) -> None:
         if len(self.channel.container) > 0:
             photon: Photon = self.channel.read()[0]  # Only 1 photon for now
-            base_idx = random.choice([1, 2, 3])
-            angle = self.bases[base_idx]
+            base_idx, angle = self._choose_base()
             bit = photon.measure(angle)
             self.results.append({'base_idx': base_idx, 'base': angle, 'bit': bit})

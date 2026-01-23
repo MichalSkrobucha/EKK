@@ -1,18 +1,17 @@
-from .Analysis import *
-from QKD_Algorithms.Logger import SimLogger
-
-logger = SimLogger()
+# from .Analysis import *
+from SimManagerBB84 import SimManagerBB84 as SimManager
 
 
-def main() -> None:
+def run_simulation() -> None:
     """
     Runs the simulation
     """
     simManager: SimManager = SimManager()
-    logger.enable_logger(True)  # Włączenie logów
+    simManager.ifEve = False
+    simManager.logger.enable_logger(True)  # Włączenie logów
     simManager.simLoop()
-    simManager.printTable()
-    simManager.checkCorrectness()
+    # simManager.printTable()
+    # simManager.checkCorrectness()
     #
     # Analysis
     # logger.enable_logger(False)  # Wyłącznie logów
@@ -23,4 +22,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    run_simulation()

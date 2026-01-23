@@ -1,10 +1,11 @@
 from random import randint
 from typing import override
 
-from .Channel import Channel
-from QKD_Algorithms.Logger import SimLogger
-from .Photon import Photon
-from QKD_Algorithms.Common import Eve
+from Common.Eve import Eve
+from Common.Photon import Photon
+
+from Logger import SimLogger
+from Common.Channel import Channel
 
 
 class EveBB84(Eve):
@@ -69,3 +70,41 @@ class EveBB84(Eve):
                     self.logger.log(f'Eve measured photon in base {base} and got bit {bit}')
                 else:
                     self.logger.log('Eve couldn\'t make a measurment')
+
+    def eavesdrop_bases(self, basesA: list[int], basesB: list[int]) -> None:
+        """
+        Eavesdrops on base exchange (and sieves her bits)
+        :param basesA: Alice's basis
+        :param basesB: Bob;s basis
+        """
+
+        self.logger.log('Eve is eavesdropping on base exchange')
+
+        if self.after_sieving:
+            for (a, b, ph) in zip(basesA, basesB, self.photons):
+                if a == b:
+                    if ph is not None:
+                        self.sieved_bits.append(ph.measure(a))
+                    else:
+                        self.sieved_bits.append(-1)
+        else:
+            for (a, b, bases, bits) in zip(basesA, basesB, self.bases, self.bits):
+
+                # Eve knows Alice and Bob will use this bit to make key
+                if a == b:
+                    # She looks through her list to find matching one
+                    for (base, bit) in zip(bases, bits):
+                        # She found one of matching base
+                        if base == a:
+                            self.sieved_bits.append(bit)
+                            break
+                    # She does not have matching base (unknown bit)
+                    else:
+                        self.sieved_bits.append(-1)
+
+    def print_sieved_bits(self) -> None:
+        """
+        Prints bits Eve has sieved (for debug)
+        """
+        self.logger.log(f'Eve has {len(self.sieved_bits)} bits: {self.sieved_bits}')
+        self.logger.log(f'Out of which she does not know {len([p for p in self.sieved_bits if p == -1])} of them')

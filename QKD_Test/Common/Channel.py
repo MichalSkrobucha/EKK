@@ -1,6 +1,6 @@
-from QKD_Algorithms.Logger import SimLogger
 from .Photon import Photon
 from random import random, randint
+from Logger import SimLogger
 
 
 class Channel:

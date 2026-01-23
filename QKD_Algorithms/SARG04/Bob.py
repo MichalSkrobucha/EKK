@@ -28,7 +28,6 @@ class Bob:
         self.bits: list[int] = []
         self.aliceStates: list[tuple[int, int]] = []  # 1st - computational basis, 2nd - Hadamard basis
         self.keyIDs: list[int] = []
-        self.keyBits: list[int] = []
 
         self.sampleIds: list[int] = []
         self.aliceSample: list[int] = []
