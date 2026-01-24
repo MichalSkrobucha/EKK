@@ -15,7 +15,6 @@ class SimManager:
     qberThreshhold: float = 0.2
     ifEve: bool = True
     is_running: bool = False
-    logs: bool = True
 
     channel_length: float = 1.0  # km
     dumpening_per_km: float = 0.2  # dB/ km

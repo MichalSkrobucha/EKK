@@ -180,12 +180,17 @@ class SettingsPanel(QWidget):
         logger.log(f"Changed value {sim_variable} -> {bases}")
         sim_variable = bases
 
-    # def lock_settings(self):
-    #     widgets_list = self.layout.findChildren(QWidget)
-    #     for widget in widgets_list:
-    #         widget.setEnabled(False)
-    #
-    # def unlock_settings(self):
-    #     pass
+    def set_inputs_enabled(self, enabled: bool):
+        """Metoda pomocnicza do włączania/wyłączania elementów"""
+        for group in self.findChildren(QGroupBox):
+            group.setEnabled(enabled)
+
+    def lock_settings(self):
+        """Blokuje edycję"""
+        self.set_inputs_enabled(False)
+
+    def unlock_settings(self):
+        """Odblokowuje edycję"""
+        self.set_inputs_enabled(True)
 
 

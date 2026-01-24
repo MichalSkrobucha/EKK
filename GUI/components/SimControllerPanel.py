@@ -45,9 +45,9 @@ class SimControllerPanel(QWidget):
 
         playback_layout = QHBoxLayout()
         self.btn_reset = create_media_btn('fa5s.redo', "Reset Simulation")
-        self.btn_next = create_media_btn('fa5s.step-backward', "Step Back")
+        self.btn_next = create_media_btn('fa5s.step-forward', "Step Back")
         self.btn_play = create_media_btn('fa5s.play', "Start", False)
-        self.btn_prev = create_media_btn('fa5s.step-forward', "Next Step")
+        self.btn_prev = create_media_btn('fa5s.step-backward', "Next Step")
         self.btn_skip = create_media_btn('fa5s.fast-forward', "Skip to End")
 
         # Action
@@ -78,9 +78,9 @@ class SimControllerPanel(QWidget):
 
     def on_play_clicked(self):
         self.is_running = not self.is_running
-        self.sig_play.emit()
         # Aktualizacja wyglądu
         update_play_button_visuals(self.btn_play, self.is_running)
+        self.sig_play.emit()
 
     def on_reset_clicked(self):
         pass

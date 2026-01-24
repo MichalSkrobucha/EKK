@@ -59,6 +59,9 @@ class ProtocolPage(QWidget):
         self.sim_view.sig_skip.connect(self.worker.skip_simulation)
         self.sim_view.sig_speed.connect(self.worker.set_speed)
 
+        self.worker.sig_log_update.connect(self.sim_view.update_logs)
+        self.worker.sig_lock_settings.connect(self.sim_view.sim_lock_settings)
+
         self.sim_thread.start()
 
     def closeEvent(self, event):

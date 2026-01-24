@@ -11,17 +11,14 @@ class SimLogger:
         self._setup_logger()
 
     def _setup_logger(self, name: str = "MyLogger", level=logging.DEBUG):
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
+        self._logger = logging.getLogger(name)
+        self._logger.setLevel(level)
 
-        self.logger.propagate = False
-
-        if self.logger.hasHandlers():
-            self.logger.handlers.clear()
+        self._logger.propagate = False
 
         self.main_handler = logging.StreamHandler(sys.stdout)
         self.main_handler.setLevel(level)
-        self.logger.addHandler(self.main_handler)
+        self._logger.addHandler(self.main_handler)
 
         self.full_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         self.plain_formatter = logging.Formatter('%(message)s')
@@ -42,6 +39,10 @@ class SimLogger:
         self.use_plain = False
         self.use_plain_format(self.use_plain)
 
+        history_handler = DictionaryHistoryHandler(self)
+        history_handler.setFormatter(self.full_formatter)
+        self._logger.addHandler(history_handler)
+
     def use_plain_format(self, plain: bool = True) -> None:
         self.use_plain = plain
         if self.use_plain:
@@ -51,44 +52,52 @@ class SimLogger:
 
     def enable_logger(self, enabled: bool = True) -> None:
         if enabled:
-            self.logger.setLevel(logging.DEBUG)
+            self._logger.setLevel(logging.DEBUG)
         else:
-            self.logger.setLevel(logging.WARNING)
+            self._logger.setLevel(logging.WARNING)
 
     def set_time(self, time: int) -> None:
         self.sim_time = time
 
     def msg(self, msg: str, **kwargs) -> None:
         self.use_plain_format(True)
-        self.logger.info(msg, **kwargs)
-        self.log_history[self.sim_time].append(msg)
+        self._logger.info(msg, **kwargs)
 
     def log(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
         formatted_msg = f">>> [sim_time: {self.sim_time}] {msg} <<<"
-        self.logger.info(formatted_msg, **kwargs)
-        self.log_history[self.sim_time].append(msg)
+        self._logger.info(formatted_msg, **kwargs)
 
     def debug(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
-        self.logger.debug(msg, **kwargs)
-        self.log_history[self.sim_time].append(msg)
+        self._logger.debug(msg, **kwargs)
 
     def info(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
-        self.logger.info(msg, **kwargs)
-        self.log_history[self.sim_time].append(msg)
+        self._logger.info(msg, **kwargs)
 
     def warning(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
-        self.logger.warning(msg, **kwargs)
-        self.log_history[self.sim_time].append(msg)
+        self._logger.warning(msg, **kwargs)
 
     def error(self, msg: str, **kwargs) -> None:
         self.use_plain_format(False)
-        self.logger.error(msg, **kwargs)
-        self.log_history[self.sim_time].append(msg)
+        self._logger.error(msg, **kwargs)
 
     def important(self, msg):
         self.important_logger.info(msg)
-        self.log_history[self.sim_time].append(msg)
+
+
+class DictionaryHistoryHandler(logging.Handler):
+    def __init__(self, sim_logger_instance):
+        super().__init__()
+        self.sim_logger = sim_logger_instance
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        current_sim_time = self.sim_logger.sim_time
+
+        if current_sim_time not in self.sim_logger.log_history:
+            self.sim_logger.log_history[current_sim_time] = []
+
+        self.sim_logger.log_history[current_sim_time].append(log_entry)

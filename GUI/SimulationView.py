@@ -59,12 +59,31 @@ class SimulationView(QWidget):
         logs_layout = QVBoxLayout()
         self.logs_text = QTextEdit()
         self.logs_text.setReadOnly(True)
-        self.logs_text.setText(f"System initialized for {protocol_name}...\nWaiting for start...")
+        self.logs_text.setText(f"System initialized for {self.protocol_name}...\nWaiting for start...")
         logs_layout.addWidget(self.logs_text)
         logs_group.setLayout(logs_layout)
 
         # SKŁADANIE CAŁOŚCI
         main_layout.addLayout(top_section, stretch=3)
-        main_layout.addWidget(logs_group, stretch=1)
+        main_layout.addWidget(logs_group, stretch=2)
 
         self.setLayout(main_layout)
+
+    def update_logs(self, current_step: int, logs: list[str], clear_first: bool = False):
+        """
+        """
+        # Krok --
+        if clear_first:
+            self.logs_text.clear()
+        # Krok ++
+        for line in logs:
+            self.logs_text.append(line)
+
+        sb = self.logs_text.verticalScrollBar()
+        sb.setValue(sb.maximum())
+
+    def sim_lock_settings(self, lock_settings: bool):
+        if lock_settings:
+            self.setting_layout.lock_settings()
+        else:
+            self.setting_layout.unlock_settings()
