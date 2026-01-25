@@ -13,17 +13,32 @@ class SimLogger:
     def _setup_logger(self, name: str = "MyLogger", level=logging.DEBUG):
         self._logger = logging.getLogger(name)
         self._logger.setLevel(level)
-
         self._logger.propagate = False
-
-        self.main_handler = logging.StreamHandler(sys.stdout)
-        self.main_handler.setLevel(level)
-        self._logger.addHandler(self.main_handler)
 
         self.full_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         self.plain_formatter = logging.Formatter('%(message)s')
 
-        # --- Konfiguracja Important Logger ---
+        # --- CONSOLE HANDLER ---
+        existing_console_handlers = [
+            h for h in self._logger.handlers
+            if isinstance(h, logging.StreamHandler) and not isinstance(h, DictionaryHistoryHandler)
+        ]
+
+        if not existing_console_handlers:
+            # Nie ma handlera - tworzymy nowy
+            self.main_handler = logging.StreamHandler(sys.stdout)
+            self.main_handler.setLevel(level)
+            self.main_handler.setFormatter(self.full_formatter)
+            self._logger.addHandler(self.main_handler)
+        else:
+            self.main_handler = existing_console_handlers[0]
+
+        # --- HISTORY HANDLER ---
+        history_handler = DictionaryHistoryHandler(self)
+        history_handler.setFormatter(self.full_formatter)
+        self._logger.addHandler(history_handler)
+
+        # --- Important Logger ---
         self.important_logger = logging.getLogger("ImportantSimLogger")
         self.important_logger.setLevel(logging.DEBUG)
         self.important_logger.propagate = False
@@ -32,16 +47,10 @@ class SimLogger:
             self.important_logger.handlers.clear()
 
         ih = logging.StreamHandler(sys.stdout)
-        ih.setFormatter(logging.Formatter('%(message)s'))
+        ih.setFormatter(self.plain_formatter)
         self.important_logger.addHandler(ih)
 
-        # Ustawiamy domyślny format
         self.use_plain = False
-        self.use_plain_format(self.use_plain)
-
-        history_handler = DictionaryHistoryHandler(self)
-        history_handler.setFormatter(self.full_formatter)
-        self._logger.addHandler(history_handler)
 
     def use_plain_format(self, plain: bool = True) -> None:
         self.use_plain = plain

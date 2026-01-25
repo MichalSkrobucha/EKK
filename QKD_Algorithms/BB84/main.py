@@ -7,7 +7,7 @@ def run_simulation() -> None:
     Runs the simulation
     """
     simManager: SimManager = SimManager()
-    simManager.ifEve = False
+    simManager.ifEve = True
     simManager.logger.enable_logger(True)  # Włączenie logów
     simManager.simLoop()
     # simManager.printTable()

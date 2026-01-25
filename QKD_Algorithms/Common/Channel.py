@@ -1,6 +1,7 @@
 from .Photon import Photon
 from random import random, randint
 from Logger import SimLogger
+from abc import ABC, abstractmethod
 
 
 class Channel:

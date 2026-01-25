@@ -1,28 +1,27 @@
 import pandas as pd
 from DIContainers import BB84Container
 from Common.SimManager import SimManager
+from Common.config import cfg
 
 
 class SimManagerBB84(SimManager):
     def __init__(self):
         # self.reloadBaseValues()
-        channel = self.channel = BB84Container.channel(self.dumpening, self.base_transform)
-        alice = BB84Container.alice(mi=0.5)
-        bob = BB84Container.bob(efficiency=0.99, error=0.01)
+        self._recalculate_channel_params()
+        channel = BB84Container.channel(self.dumpening, self.base_transform)
+        alice = BB84Container.alice(mi=cfg.bb84.alice_mi)
+        bob = BB84Container.bob(efficiency=cfg.bb84.bob_efficiency/100,
+                                error=cfg.bb84.bob_error/100)
         eve = BB84Container.eve()
         logger = BB84Container.logger()
 
-        super().__init__(channel, alice, bob, eve, logger)
+        super().__init__(channel, alice, bob, eve, logger, "BB84")
 
     def simLoop(self):
         """
         Simulates QKD (du-uh)
         """
-        self.logger.log(f'\nSimulating channel of length {self.channel_length} km\n'
-                   f'with dumpening rate {self.dumpening_per_km} dB/km and base_transform rate {self.base_transform_per_km} dB/km\n'
-                   f'Total rates are {self.dumpening_dB} dB of dumpening and {self.base_transform_per_km} dB of base_transform\n'
-                   f'Probability of events (per photon) are {self.dumpening} for dumpening and {self.base_transform_per_km} for base_transform')
-
+        self._initial_print()
         self.is_running = True
         while self.is_running:
             self.sim_next_step()
@@ -41,6 +40,9 @@ class SimManagerBB84(SimManager):
             f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
 
     def sim_next_step(self):
+        if self.sim_step == 0:
+            self._initial_print()
+
         self.logger.set_time(self.sim_step)
         if self.sim_step < self.sim_end:
             self._sim_transmition_step()

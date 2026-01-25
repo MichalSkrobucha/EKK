@@ -5,11 +5,11 @@ from math import ceil
 from hashlib import sha256
 from Common.Channel import Channel
 from E91.ChannelE91 import ChannelE91
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from Logger import SimLogger
 
 
-class Alice:
+class Alice(ABC):
     """
 
     """

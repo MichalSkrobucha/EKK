@@ -5,9 +5,10 @@ from hashlib import sha256
 from Logger import SimLogger
 from Common.Channel import Channel
 from E91.ChannelE91 import ChannelE91
+from abc import ABC, abstractmethod
 
 
-class Bob:
+class Bob(ABC):
 
     def __init__(self, efficiency: float, error: float, channel: Channel|ChannelE91, logger: SimLogger) -> None:
         """

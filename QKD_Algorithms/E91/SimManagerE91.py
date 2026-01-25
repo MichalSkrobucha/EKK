@@ -3,11 +3,12 @@ from typing import override
 from itertools import combinations
 from DIContainers import E91Container
 from Common.SimManager import SimManager
+from Common.config import cfg
 
 
 class SimManagerE91(SimManager):
-    BASES_ALICE = {1: 0, 2: 22.5, 3: 45}
-    BASES_BOB = {1: 22.5, 2: 45, 3: 67.5}
+    BASES_ALICE = cfg.e91.alice_bases
+    BASES_BOB = cfg.e91.bob_bases
 
     def __init__(self):
         self.channel_alice = E91Container.channel_A()
@@ -17,12 +18,13 @@ class SimManagerE91(SimManager):
         self.source = E91Container.source()
         logger = E91Container.logger()
 
-        super().__init__(None, alice, bob, None, logger)
+        super().__init__(None, alice, bob, None, logger, "E91")
 
     def simLoop(self):
         """
         Simulates QKD (du-uh)
         """
+        self._initial_print()
         self.is_running = True
         while self.is_running:
             self.sim_next_step()
@@ -30,6 +32,21 @@ class SimManagerE91(SimManager):
         for step in range(self.sim_start, self.sim_end, self.sim_step):
             # Alice sends bits (impulses of photons) to Bob
             self.sim_next_step()
+
+    @override
+    def _initial_print(self):
+        self.logger.log(f'\n --- {self.protocol_name} Simulation ---'
+                        f'> Channel Length: {self.channel_length} km\n'
+                        f'> Dumpening per km: {self.dumpening_per_km} dB/km\n'
+                        f'> Base transform rate: {self.base_transform_per_km} dB/km\n'
+                        f'> Dumpening rate: {self.dumpening_dB} dB\n'
+                        f'> Total base transform: {self.base_transform_per_km} dB\n'
+                        f'> Total dumpening rate: {self.dumpening}\n'
+                        f'> Base transform per km {self.base_transform_per_km}\n'
+                        f'> QBER treshhold: {self.qberThreshhold}\n'
+                        f'> If Eve is present: {self.ifEve}\n'
+                        f'> Alice bases: {self.BASES_ALICE}\n'
+                        f'> Bob bases: {self.BASES_BOB}\n')
 
     def sim_next_step(self):
         self.logger.set_time(self.sim_step)
@@ -206,4 +223,43 @@ class SimManagerE91(SimManager):
               f'B: {bob.key.hex()}\n'
               f'Keys match: {alice.key == bob.key}')
 
+    @override
+    def update_setting(self, key: str, value):
+        """Dynamiczna aktualizacja parametrów symulacji"""
+        print(f"Updating setting: {key} -> {value}")
 
+        if key == "qber_threshold":
+            self.qberThreshhold = float(value) / 100.0
+
+        elif key == "key_length":
+            self.sim_end = int(value)
+
+        elif key == "channel_length":
+            self.channel_length = float(value)
+            self._recalculate_channel_params()
+
+        elif key == "dumpening":
+            self.dumpening_per_km = float(value)
+            self._recalculate_channel_params()
+
+        elif key == "base_transform":  # Polaryzacja
+            self.base_transform_per_km = float(value)
+            self._recalculate_channel_params()
+
+        elif key == "n_photons":
+            if hasattr(self.source, 'n'):
+                self.source.n = int(value)
+
+        elif key == "distribution":
+            if hasattr(self.source, 'distribution'):
+                self.source.distribution = float(value)
+
+        elif key == "alice_bases":
+            if hasattr(self.alice, 'bases'):
+                parts = value.replace(';', ',').split(',')
+                bases_dict = {i: float(val) for i, val in enumerate(parts, start=1)}
+                self.alice.bases = bases_dict
+
+        elif key == "bob_bases":  # TODO
+            if hasattr(self.alice, 'bases'):
+                self.bob.bases = value

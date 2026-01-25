@@ -1,27 +1,26 @@
 import pandas as pd
 from Common.SimManager import SimManager
 from DIContainers import SARGContainer
+from Common.config import cfg
+
 
 class SimManagerSARG(SimManager):
     def __init__(self):
-        # self.reloadBaseValues()
+        self._recalculate_channel_params()
         channel = self.channel = SARGContainer.channel(self.dumpening, self.base_transform)
-        alice = SARGContainer.alice(mi=0.5)
-        bob = SARGContainer.bob(efficiency=0.99, error=0.01)
+        alice = SARGContainer.alice(mi=cfg.bb84.alice_mi)
+        bob = SARGContainer.bob(efficiency=cfg.bb84.bob_efficiency/100,
+                                error=cfg.bb84.bob_error/100)
         eve = SARGContainer.eve()
         logger = SARGContainer.logger()
 
-        super().__init__(channel, alice, bob, eve, logger)
+        super().__init__(channel, alice, bob, eve, logger, "SARG04")
 
     def simLoop(self):
         """
         Simulates QKD (du-uh)
         """
-        self.logger.log(f'\nSimulating channel of length {self.channel_length} km\n'
-                        f'with dumpening rate {self.dumpening_per_km} dB/km and base_transform rate {self.base_transform_per_km} dB/km\n'
-                        f'Total rates are {self.dumpening_dB} dB of dumpening and {self.base_transform_per_km} dB of base_transform\n'
-                        f'Probability of events (per photon) are {self.dumpening} for dumpening and {self.base_transform_per_km} for base_transform')
-
+        self._initial_print()
         self.is_running = True
         while self.is_running:
             self.sim_next_step()
@@ -57,6 +56,9 @@ class SimManagerSARG(SimManager):
         print("\n", df)
 
     def sim_next_step(self):
+        if self.sim_step == 0:
+            self._initial_print()
+
         self.logger.set_time(self.sim_step)
         if self.sim_step < self.sim_end:
             self._sim_transmition_step()

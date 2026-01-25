@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QGroupBox, QFrame
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from GUI.components.SettingsPanel import SettingsPanel
 from GUI.components.SimControllerPanel import SimControllerPanel
@@ -11,6 +11,7 @@ class SimulationView(QWidget):
     To jest widok odpowiadający zakładce SIM
     Zawiera: Controls, Animation, Step Controller, Logs.
     """
+    sig_forward_settings = pyqtSignal(str, object)
 
     def __init__(self, protocol_name, parent=None):
         super().__init__(parent)
@@ -23,8 +24,9 @@ class SimulationView(QWidget):
         # GÓRNA CZĘŚĆ
         top_section = QHBoxLayout()
 
-        # PANEL CONTROLS
+        # SETTINGS PANEL
         self.setting_layout = SettingsPanel(protocol_name, self)
+        self.setting_layout.sig_setting_changed.connect(self.sig_forward_settings)
 
         # ŚRODKOWY OBSZAR (ANIMATION + CONTROLLER)
         sim_layout = QVBoxLayout()
@@ -87,3 +89,4 @@ class SimulationView(QWidget):
             self.setting_layout.lock_settings()
         else:
             self.setting_layout.unlock_settings()
+

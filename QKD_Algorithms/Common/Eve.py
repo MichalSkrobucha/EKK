@@ -2,9 +2,10 @@ from abc import abstractmethod
 from random import randint
 from Logger import SimLogger
 from .Channel import Channel
+from abc import ABC
 
 
-class Eve:
+class Eve(ABC):
     def __init__(self, channel: Channel, logger: SimLogger):
         """
         :param channel: Channel on which Alice and Bob are communicating

@@ -9,7 +9,6 @@ from Common.Channel import Channel
 
 class AliceSARG(Alice):
     """
-
     """
     def __init__(self, mi: float, channel: Channel, photon_factory, logger: SimLogger):
         """

@@ -1,33 +1,34 @@
 import pandas as pd
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from math import ceil
 from Logger import SimLogger
 from .Channel import Channel
 from .Alice import Alice
 from .Bob import Bob
 from .Eve import Eve
+from Common.config import cfg
 
 
-class SimManager:
+class SimManager(ABC):
     sim_start: int = 0
-    sim_end: int = 1000
+    sim_end: int = cfg.sim.key_length
     sim_step: int
-    qberThreshhold: float = 0.2
-    ifEve: bool = True
+    qberThreshhold: float = cfg.sim.qber_threshold/100
+    ifEve: bool = cfg.bb84.eve_present
     is_running: bool = False
 
-    channel_length: float = 1.0  # km
-    dumpening_per_km: float = 0.2  # dB/ km
-    base_transform_per_km: float = 0.2  # db / km
+    channel_length: float = cfg.channel.length_km  # km
+    dumpening_per_km: float = cfg.channel.dumpening_per_km  # dB/ km
+    base_transform_per_km: float = cfg.channel.base_transform_per_km  # db / km
 
-    dumpening_dB: float = dumpening_per_km * channel_length
-    base_transform_dB: float = base_transform_per_km * channel_length
+    dumpening_dB: float
+    base_transform_dB: float
 
-    dumpening: float = 1 - 10 ** (-dumpening_dB / 10.0)
-    base_transform: float = 1 - 10 ** (-base_transform_dB / 10.0)
+    dumpening: float
+    base_transform: float
 
-    def __init__(self, channel: Channel|None, alice: Alice, bob: Bob, eve: Eve|None, logger: SimLogger):
-        # self.reloadBaseValues()
+    def __init__(self, channel: Channel|None, alice: Alice, bob: Bob, eve: Eve|None, logger: SimLogger, protocol_name: str=""):
+        self.protocol_name = protocol_name
         self.channel = channel
         self.alice = alice
         self.bob = bob
@@ -38,9 +39,9 @@ class SimManager:
         self.logger.set_time(self.sim_start)
 
     def reloadBaseValues(self):
-        self.channel_length: float = 1.0  # km
-        self.dumpening_per_km: float = 0.2  # dB/ km
-        self.base_transform_per_km: float = 0.2  # db / km
+        self.channel_length: float = cfg.channel.length_km  # km
+        self.dumpening_per_km: float = cfg.channel.dumpening_per_km  # dB/ km
+        self.base_transform_per_km: float = cfg.channel.base_transform_per_km  # db / km
 
     def clearLists(self) -> None:
         """
@@ -96,6 +97,18 @@ class SimManager:
         self.logger.log(
             f'Alice and Bob have {len(alice_bits)} each and Bob has {bob_correct_bits} correct ({bob_correct_bits / len(alice_bits):.4f})\n'
             f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
+
+    def _initial_print(self):
+        self.logger.log(f'\n --- {self.protocol_name} Simulation ---\n'
+                        f'> Channel Length: {self.channel_length} km\n'
+                        f'> Dumpening per km: {self.dumpening_per_km} dB/km\n'
+                        f'> Base transform rate: {self.base_transform_per_km} dB/km\n'
+                        f'> Dumpening rate: {self.dumpening_dB} dB\n'
+                        f'> Total base transform: {self.base_transform_per_km} dB\n'
+                        f'> Total dumpening rate: {self.dumpening}\n'
+                        f'> Base transform per km {self.base_transform_per_km}\n'
+                        f'> QBER treshhold: {self.qberThreshhold}\n'
+                        f'> If Eve is present: {self.ifEve}\n')
 
     @abstractmethod
     def sim_next_step(self):
@@ -236,3 +249,56 @@ class SimManager:
         self.logger.log(f'A: {alice.key.hex()}\n'
               f'B: {bob.key.hex()}\n'
               f'Keys match: {alice.key == bob.key}')
+
+    def update_setting(self, key: str, value):
+        """Dynamiczna aktualizacja parametrów symulacji"""
+
+        print(f"Updating setting: {key} -> {value}")
+
+        if key == "qber_threshold":
+            self.qberThreshhold = float(value) / 100.0
+
+        elif key == "key_length":
+            self.sim_end = int(value)
+
+        elif key == "channel_length":
+            self.channel_length = float(value)
+            self._recalculate_channel_params()
+
+        elif key == "dumpening":
+            self.dumpening_per_km = float(value)
+            self._recalculate_channel_params()
+
+        elif key == "base_transform":  # Polaryzacja
+            self.base_transform_per_km = float(value)
+            self._recalculate_channel_params()
+
+        elif key == "alice_mi":
+            if hasattr(self.alice, 'mi'):
+                self.alice.mi = float(value)
+
+        elif key == "bob_eff":
+            if hasattr(self.bob, 'efficiency'):
+                self.bob.efficiency = float(value) / 100.0
+
+        elif key == "bob_error":
+            if hasattr(self.bob, 'error'):
+                self.bob.error = float(value) / 100.0
+
+        elif key == "if_eve":
+            self.ifEve = bool(value)
+
+    def _recalculate_channel_params(self):
+        """Przelicza parametry zależne od długości kanału"""
+        self.dumpening_dB: float = self.dumpening_per_km * self.channel_length
+        self.base_transform_dB: float = self.base_transform_per_km * self.channel_length
+
+        self.dumpening: float = round(1 - 10 ** (-self.dumpening_dB / 10.0),1)
+        self.base_transform: float = round(1 - 10 ** (-self.base_transform_dB / 10.0),1)
+
+        # Aktualizacja obiektu Channel
+        if hasattr(self, 'channel') and self.channel is not None:
+            if hasattr(self.channel, 'dumpening'):
+                self.channel.dumpening = self.dumpening
+            if hasattr(self.channel, 'base_transform'):
+                self.channel.base_transform = self.base_transform
