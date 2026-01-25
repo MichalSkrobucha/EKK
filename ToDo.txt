@@ -3,7 +3,10 @@
   *** and connect to GUI
 
 * Authentication Analysis ~ M
- ** (M, T, iters) -> (given_message_guess_probability, chosen_message_guess_probability)
+ ** (M, T) -> (count_of_eq_prob_hashes) // close_to_eq ?
+ Dalej dla eq_prob_hashes
+ ** (M, T, given_mts, mts_to_forge) -> (guess_probability, best_guess_probability)
+ ** (M, T) -> (iters_needed_to_narrow_to_1) -> (number_of_eavesdropped_mts)
 
 
 * GUI ~ N
