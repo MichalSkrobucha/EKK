@@ -111,5 +111,3 @@ class SimManagerBB84(SimManager):
         df = df.transpose()
         df.to_csv(fname, index=False)
         print("\n", df)
-
-

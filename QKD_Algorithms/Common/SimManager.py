@@ -308,5 +308,3 @@ class SimManager(ABC):
                 self.channel.dumpening = self.dumpening
             if hasattr(self.channel, 'base_transform'):
                 self.channel.base_transform = self.base_transform
-
-
