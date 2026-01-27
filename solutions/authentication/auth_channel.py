@@ -2,9 +2,7 @@ from auth_alice import alice
 from auth_bob import bob
 from auth_eve import eve
 from auth_hash import hash
-
 from random import choice, shuffle
-from math import ceil
 
 
 class channel:
@@ -33,6 +31,15 @@ class channel:
         print(f'In total there are {len(possible_hashes)} possible hashes\n')
 
         self.eve: eve = eve(self.M, self.T, self.p, possible_hashes)
+
+    def setupValues_andClear(self, m_exp: int, t_exp: int, eq_prob_tolerance: int, given_mts: int, eve_forgeries: int):
+        self.M = 2 ** m_exp
+        self.T = 2 ** t_exp
+        self.eq_prob_tolerance = eq_prob_tolerance
+        self.given_mts = given_mts
+        self.eve_forgeries = eve_forgeries
+
+        self.__init__()
 
     def find_possible_hashes(self) -> list[tuple[int, int]]:
         eq_prob: int = self.M // self.T

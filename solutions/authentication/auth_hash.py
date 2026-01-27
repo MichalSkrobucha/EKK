@@ -1,5 +1,4 @@
-from sympy import nextprime as nxtpr
-from sympy import mod_inverse as modinv
+from sympy import nextprime as nxtpr, mod_inverse as modinv
 
 
 class hash:

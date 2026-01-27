@@ -1,7 +1,5 @@
-from itertools import combinations
-from collections import Counter
-
 from auth_hash import hash
+from collections import Counter
 from random import choice, shuffle
 
 
