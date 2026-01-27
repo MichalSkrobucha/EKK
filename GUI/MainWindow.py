@@ -6,17 +6,20 @@ from QKD_Algorithms.BB84.SimManagerBB84 import SimManagerBB84
 from QKD_Algorithms.E91.SimManagerE91 import SimManagerE91
 from QKD_Algorithms.SARG04.SimManagerSARG import SimManagerSARG
 from ProtocolPage import ProtocolPage
-from style import STYLESHEET
+from style import STYLESHEET, STYLESHEET_LIGHT
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, dark_theme=True):
         super().__init__(parent)
 
         # -- Layout --
         self.setWindowTitle("QKD Simulator")
         self.resize(1300, 900)
-        self.setStyleSheet(STYLESHEET)
+        if dark_theme:
+            self.setStyleSheet(STYLESHEET)
+        else:
+            self.setStyleSheet(STYLESHEET_LIGHT)
 
         # Główny widget centralny
         central_widget = QWidget()

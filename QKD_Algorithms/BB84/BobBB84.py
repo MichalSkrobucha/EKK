@@ -38,5 +38,6 @@ class BobBB84(Bob):
             if a == b:
                 self.sievedBits.append(bit)
 
+        self.keyBits = list(self.sievedBits)
         self.logger.log(
             f"Bob sieved his measurments (based on his and Alice's bases) and got {len(self.sievedBits)} bits: {self.sievedBits}")

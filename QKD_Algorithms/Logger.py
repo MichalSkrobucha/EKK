@@ -52,6 +52,10 @@ class SimLogger:
 
         self.use_plain = False
 
+    def reset_logger(self, sim_start: int = 0):
+        self.log_history.clear()
+        self.sim_start: int = sim_start
+
     def use_plain_format(self, plain: bool = True) -> None:
         self.use_plain = plain
         if self.use_plain:

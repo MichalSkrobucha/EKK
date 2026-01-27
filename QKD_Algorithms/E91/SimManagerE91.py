@@ -11,6 +11,7 @@ class SimManagerE91(SimManager):
     BASES_BOB = cfg.e91.bob_bases
 
     def __init__(self):
+        self._recalculate_channel_params()
         self.channel_alice = E91Container.channel_A()
         self.channel_bob = E91Container.channel_B()
         alice = E91Container.alice(self.BASES_ALICE)
@@ -28,10 +29,7 @@ class SimManagerE91(SimManager):
         self.is_running = True
         while self.is_running:
             self.sim_next_step()
-
-        for step in range(self.sim_start, self.sim_end, self.sim_step):
-            # Alice sends bits (impulses of photons) to Bob
-            self.sim_next_step()
+        self.is_running = False
 
     @override
     def _initial_print(self):
@@ -50,6 +48,9 @@ class SimManagerE91(SimManager):
 
     def sim_next_step(self):
         self.logger.set_time(self.sim_step)
+        if self.sim_step == 0:
+            self._initial_print()
+
         if self.sim_step < self.sim_end:
             self._sim_transmition_step()
             self.logger.msg(f"---")

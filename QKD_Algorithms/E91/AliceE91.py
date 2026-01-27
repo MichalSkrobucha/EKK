@@ -1,3 +1,5 @@
+from typing import override
+
 from .ChannelE91 import ChannelE91 as Channel
 from Logger import SimLogger
 import random
@@ -13,6 +15,11 @@ class AliceE91(Alice):
         super().__init__(0, channel, None, logger)
         self.channel.name = "channel_A"
         self.bases: dict = bases
+
+    @override
+    def clearLists(self):
+        super().clearLists()
+        self.results.clear()
 
     def receive(self) -> None:
         if len(self.channel.container) > 0:

@@ -81,7 +81,3 @@ class SimControllerPanel(QWidget):
         # Aktualizacja wyglądu
         update_play_button_visuals(self.btn_play, self.is_running)
         self.sig_play.emit()
-
-    def on_reset_clicked(self):
-        pass
-

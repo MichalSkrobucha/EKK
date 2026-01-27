@@ -20,8 +20,7 @@ class EveSARG(Eve):
         """
         Empties all lists
         """
-        self.bits.clear()
-        self.bases.clear()
+        super().clearLists()
         self.aliceStates.clear()
         self.keyBits.clear()
 

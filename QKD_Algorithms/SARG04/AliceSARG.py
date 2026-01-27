@@ -25,15 +25,11 @@ class AliceSARG(Alice):
         """
         Empties all lists
         """
-        self.message.clear()
+        super().clearLists()
+
         self.possibleStates.clear()
-        self.bits.clear()
         self.sendBases.clear()
         self.keyBits.clear()
-
-        self.aliceSample.clear()
-        self.bobSample.clear()
-        self.sampleIds.clear()
 
     @override
     def _generate_key(self) -> list[Photon]:

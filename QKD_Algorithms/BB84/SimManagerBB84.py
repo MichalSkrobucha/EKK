@@ -40,10 +40,10 @@ class SimManagerBB84(SimManager):
             f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
 
     def sim_next_step(self):
+        self.logger.set_time(self.sim_step)
         if self.sim_step == 0:
             self._initial_print()
 
-        self.logger.set_time(self.sim_step)
         if self.sim_step < self.sim_end:
             self._sim_transmition_step()
         elif self.sim_step == self.sim_end:

@@ -37,7 +37,7 @@ class AliceBB84(Alice):
         for (a, b, bit) in zip(self.bases, self.bobBases, self.bits):
             if a == b:
                 self.sievedBits.append(bit)
-        self.keyBits
+        self.keyBits = list(self.sievedBits)
         self.logger.log(
             f"Alice sieved her measurments (based on her and Bob's bases) and got {len(self.sievedBits)} bits: {self.sievedBits}")
 

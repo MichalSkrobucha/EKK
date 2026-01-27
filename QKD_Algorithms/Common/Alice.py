@@ -66,6 +66,23 @@ class Alice(ABC):
         self.bobSample.clear()
         self.sampleIds.clear()
 
+        self.qber: float = 0.0
+
+        self.i: int = 0
+        self.n: int = 0
+
+        self.keyBits.clear()
+        self.permutation.clear()
+
+        self.blocks.clear()
+        self.alice_parities.clear()
+        self.max_length: int = 0
+        self.start_length: int = 0
+
+        self.bytes_count: int = 16
+        self.random_bytes: bytes = b''
+        self.key: bytes = b''
+
     def _generate_key(self) -> list[Photon]:
         """
         Generates next bit of key, and returns impulse of photons

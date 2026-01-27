@@ -56,10 +56,10 @@ class SimManagerSARG(SimManager):
         print("\n", df)
 
     def sim_next_step(self):
+        self.logger.set_time(self.sim_step)
         if self.sim_step == 0:
             self._initial_print()
 
-        self.logger.set_time(self.sim_step)
         if self.sim_step < self.sim_end:
             self._sim_transmition_step()
         elif self.sim_step == self.sim_end:

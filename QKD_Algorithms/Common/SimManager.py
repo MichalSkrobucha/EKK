@@ -37,19 +37,24 @@ class SimManager(ABC):
 
         self.logger = logger
         self.logger.set_time(self.sim_start)
+        self._recalculate_channel_params()
 
     def reloadBaseValues(self):
         self.channel_length: float = cfg.channel.length_km  # km
         self.dumpening_per_km: float = cfg.channel.dumpening_per_km  # dB/ km
         self.base_transform_per_km: float = cfg.channel.base_transform_per_km  # db / km
 
-    def clearLists(self) -> None:
+    def clear_simManager(self) -> None:
         """
         Empties all lists
         """
         self.alice.clearLists()
         self.bob.clearLists()
         self.eve.clearLists()
+        self.channel.clearLists()
+
+        self.sim_step = 0
+        self.logger.reset_logger()
 
     @abstractmethod
     def simLoop(self):
@@ -127,6 +132,7 @@ class SimManager(ABC):
         self.alice.getSampleIds(self.bob.sendSampleIds())
         # Sample exchange
         self.alice.recieveSamples(self.bob.sendSample())
+        self.alice.sendSample()
         self.bob.receiveSamples(self.alice.sendSample())
 
     def _sim_calculate_qber(self):
@@ -302,3 +308,5 @@ class SimManager(ABC):
                 self.channel.dumpening = self.dumpening
             if hasattr(self.channel, 'base_transform'):
                 self.channel.base_transform = self.base_transform
+
+

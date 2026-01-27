@@ -58,6 +58,23 @@ class Bob(ABC):
         self.aliceSample.clear()
         self.bobSample.clear()
 
+        self.qber: float = 0.0
+
+        self.i: int = 0
+
+        self.keyBits.clear()
+
+        self.permutation.clear()
+        self.alice_hash: bytes = b''
+
+        self.blocks.clear()
+        self.bob_parities.clear()
+        self.max_length: int = 0
+        self.start_length: int = 0
+
+        self.random_bytes: bytes = b''
+        self.key: bytes = b''
+
     def receive(self):
         """
         Gets impulse of photons from channel and measures it

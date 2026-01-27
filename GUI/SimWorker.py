@@ -70,16 +70,19 @@ class SimWorker(QObject):
         self.timer.stop()
         self.sim_manager.is_running = False
         self.sig_lock_settings.emit(False)
-        self.sig_finished.emit()
+        # self.sig_finished.emit()
 
     def pause_simulation(self):
         print("Pausing simulation")
         self.timer.stop()
 
     def reset_simulation(self):
-        print("Stopping simulation")
+        print("Reseting simulation")
         self.timer.stop()
         self.sim_manager.is_running = False
+        self.sig_lock_settings.emit(False)
+        self.sim_manager.clear_simManager()
+        self.current_step = 0
 
     def skip_simulation(self):
         self.start_simulation(False)

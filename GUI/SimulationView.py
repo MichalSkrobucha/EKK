@@ -12,6 +12,7 @@ class SimulationView(QWidget):
     Zawiera: Controls, Animation, Step Controller, Logs.
     """
     sig_forward_settings = pyqtSignal(str, object)
+    sig_forward_reset = pyqtSignal()
 
     def __init__(self, protocol_name, parent=None):
         super().__init__(parent)
@@ -47,6 +48,8 @@ class SimulationView(QWidget):
         self.sig_prev = self.controls_layout.sig_prev
         self.sig_skip = self.controls_layout.sig_skip
         self.sig_speed = self.controls_layout.sig_speed
+
+        self.controls_layout.sig_reset.connect(self.sim_reset)
 
         # Składanie środka
         sim_layout.addWidget(self.animation_frame, stretch=1)
@@ -90,3 +93,7 @@ class SimulationView(QWidget):
         else:
             self.setting_layout.unlock_settings()
 
+    def sim_reset(self):
+        self.logs_text.clear()
+        self.logs_text.setText(f"System initialized for {self.protocol_name}...\nWaiting for start...")
+        self.sig_forward_reset.emit()

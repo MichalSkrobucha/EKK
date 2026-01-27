@@ -25,11 +25,10 @@ class EveBB84(Eve):
         """
         Empties all lists
         """
-        self.bits.clear()
-        self.bases.clear()
+        super().clearLists()
         self.sieved_bits.clear()
-
         self.photons.clear()
+        self.after_sieving = False
 
     def eavesdrop(self) -> None:
         """

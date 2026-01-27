@@ -21,13 +21,9 @@ class BobSARG(Bob):
         """
         Empties all lists
         """
-        self.bases.clear()
-        self.bits.clear()
+        super().clearLists()
         self.aliceStates.clear()
         self.keyIDs.clear()
-        self.sampleIds.clear()
-        self.aliceSample.clear()
-        self.bobSample.clear()
 
     def recieveStates(self, states: list[tuple[int, int]]) -> None:
         self.aliceStates = states

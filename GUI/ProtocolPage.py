@@ -63,6 +63,7 @@ class ProtocolPage(QWidget):
         self.worker.sig_lock_settings.connect(self.sim_view.sim_lock_settings)
 
         self.sim_view.sig_forward_settings.connect(sim_manager.update_setting)
+        self.sim_view.sig_forward_reset.connect(self.worker.reset_simulation)
 
         self.sim_thread.start()
 

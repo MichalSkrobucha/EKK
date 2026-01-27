@@ -18,6 +18,9 @@ class Channel:
         self.dumpening: float = dumpening
         self.base_transform: float = base_transform
 
+    def clearLists(self):
+        self.container.clear()
+
     def send(self, photons: list[Photon]) -> None:
         """
         Adds list of photons (impulse) to channel (where they are (optionally) dumpened and their basis are transformed)
