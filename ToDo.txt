@@ -1,12 +1,11 @@
 * E91 ~ M
  ** 3-Qubit attack
   *** and connect to GUI
-
-* Authentication Analysis ~ M
+  // gave-up on that
 
  * Update how many bits Eve knows ~M
   ** BB84, SARG04, E91
-
+   // same here
 
 
 * GUI ~ N

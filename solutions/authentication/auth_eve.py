@@ -31,6 +31,8 @@ class eve:
                 self.mt_pairs.add((mt1, mt2))
 
     def narrow_possible_hashes(self):
+        i : int = 0
+
         ctr: int = 1
 
         self.gen_mt_pairs()
@@ -52,13 +54,17 @@ class eve:
                     possible_qrs.add((q, r))
 
             self.possible_hashes &= possible_qrs
-            print(
-                f'After comparing mt-pair n.{ctr} of mts Eve narrow count possible hashes to {len(self.possible_hashes)}')
+            # print(
+            #     f'After comparing mt-pair n.{ctr} of mts Eve narrow count possible hashes to {len(self.possible_hashes)}')
+
+            i += 1
 
             if len(self.possible_hashes) == 1:
-                return
+                return i
 
             ctr += 1
+
+        return 0
 
     def forge_mtags(self, messages: list[int]) -> list[tuple[int, int]]:
         # zwraca od najprawdopodobniejszych do najmniej prawdopodobnych

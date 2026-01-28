@@ -5,7 +5,7 @@ from auth_analysis import analysis
 def main():
     # channel().run()
     a = analysis()
-    a.getPossibleHashesCount(8, 8)
+    a.run_analysis()
 
 
 if __name__ == '__main__':

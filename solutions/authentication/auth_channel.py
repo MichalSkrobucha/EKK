@@ -16,19 +16,20 @@ class channel:
     given_mts: int = 2
     eve_forgeries: int = 2
 
-    def __init__(self):
+    def __init__(self, m_exp: int = 4, t_exp: int = 2, eq_prob_tolerance: int = 0, given_mts: int = 2, eve_forgeries: int = 2):
         self.p: int = hash.next_prime(self.M)
         self.possible_messages: list[int] = [m for m in range(self.M)]
 
         possible_hashes: list[tuple[int, int]] = self.find_possible_hashes()
+        self.possible_hashes = possible_hashes
         qr: tuple[int, int] = choice(possible_hashes)
 
         h: hash = hash(self.M, self.T, qr[0], qr[1], self.p)
 
         self.alice: alice = alice(h, list(self.possible_messages))
         self.bob: bob = bob(h)
-        print(f'Alice and Bob have secret hash of (q,r): {qr[0], qr[1]}')
-        print(f'In total there are {len(possible_hashes)} possible hashes\n')
+        # print(f'Alice and Bob have secret hash of (q,r): {qr[0], qr[1]}')
+        # print(f'In total there are {len(possible_hashes)} possible hashes\n')
 
         self.eve: eve = eve(self.M, self.T, self.p, possible_hashes)
 
