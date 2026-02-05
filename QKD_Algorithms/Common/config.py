@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class SimulationConfig:
-    qber_threshold: float = 11.0  # %
+    qber_threshold: float = 25 # %
     key_length: int = 1024
 
 

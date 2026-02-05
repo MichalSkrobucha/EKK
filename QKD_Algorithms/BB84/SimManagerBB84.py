@@ -5,6 +5,8 @@ from Common.config import cfg
 
 
 class SimManagerBB84(SimManager):
+    protocol: int = 84
+    qber: float = 0.0
     def __init__(self):
         # self.reloadBaseValues()
         self._recalculate_channel_params()

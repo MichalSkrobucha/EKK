@@ -5,6 +5,8 @@ from Common.config import cfg
 
 
 class SimManagerSARG(SimManager):
+    protocol: int = 4
+    qber : float = 0.0
     def __init__(self):
         self._recalculate_channel_params()
         channel = self.channel = SARGContainer.channel(self.dumpening, self.base_transform)
