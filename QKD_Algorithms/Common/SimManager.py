@@ -8,12 +8,18 @@ from .Bob import Bob
 from .Eve import Eve
 from Common.config import cfg
 
+from math import log2
+
 
 class SimManager(ABC):
+    protocol: int = 0
+    qber: float = 0.0
+    S: float = 0.0
+
     sim_start: int = 0
     sim_end: int = cfg.sim.key_length
     sim_step: int
-    qberThreshhold: float = cfg.sim.qber_threshold/100
+    qberThreshhold: float = cfg.sim.qber_threshold / 100
     ifEve: bool = cfg.bb84.eve_present
     is_running: bool = False
 
@@ -27,7 +33,8 @@ class SimManager(ABC):
     dumpening: float
     base_transform: float
 
-    def __init__(self, channel: Channel|None, alice: Alice, bob: Bob, eve: Eve|None, logger: SimLogger, protocol_name: str=""):
+    def __init__(self, channel: Channel | None, alice: Alice, bob: Bob, eve: Eve | None, logger: SimLogger,
+                 protocol_name: str = ""):
         self.protocol_name = protocol_name
         self.channel = channel
         self.alice = alice
@@ -139,6 +146,7 @@ class SimManager(ABC):
         # QBER calculation
         self.alice.calculateQBER()
         self.bob.calculateQBER()
+        self.qber = self.alice.qber
 
         if self.bob.qber > self.qberThreshhold:
             # QBER is NOT accepatable
@@ -153,6 +161,9 @@ class SimManager(ABC):
         alice = self.alice
         bob = self.bob
 
+        alice.prepareForErrorCorrection()
+        bob.prepareForErrorCorrection()
+
         # korekcja błędów
         # Alicja i Bob wymieniają się informacjami, ewa słucha (w teorii - brak wywołań funkcji)
 
@@ -163,8 +174,8 @@ class SimManager(ABC):
 
         if bob.check_hash():
             self.logger.log('Key hashes match - end of error correction\n'
-                  f'Bob has {sum([1 for (a, b) in zip(alice.keyBits, bob.keyBits) if a == b])} correct bits (~SimMaster)\n'
-                  f'{'Both keys are the same' if all([a == b for (a, b) in zip(alice.keyBits, bob.keyBits)]) else 'Keys are not the same'}')
+                            f'Bob has {sum([1 for (a, b) in zip(alice.keyBits, bob.keyBits) if a == b])} correct bits (~SimMaster)\n'
+                            f'{'Both keys are the same' if all([a == b for (a, b) in zip(alice.keyBits, bob.keyBits)]) else 'Keys are not the same'}')
             return
 
         while True:
@@ -173,9 +184,9 @@ class SimManager(ABC):
             bob.get_alice_permutation(permutation)
 
             self.logger.log(f'Alice permutes her bits using permutation {permutation}\n'
-                  f'And gets bits {''.join([str(bit) for bit in self.alice.keyBits])}\n'
-                  f'Bob has bits {''.join([str(bit) for bit in self.bob.keyBits])}\n'
-                  f'Bob has {sum([1 for (a, b) in zip(alice.keyBits, bob.keyBits) if a == b])} correct bits (~SimMaster)\n')
+                            f'And gets bits {''.join([str(bit) for bit in self.alice.keyBits])}\n'
+                            f'Bob has bits {''.join([str(bit) for bit in self.bob.keyBits])}\n'
+                            f'Bob has {sum([1 for (a, b) in zip(alice.keyBits, bob.keyBits) if a == b])} correct bits (~SimMaster)\n')
 
             # podział na bloki
             alice.split_into_blocks()
@@ -189,9 +200,9 @@ class SimManager(ABC):
             matching_parities: bool = all([a == b for (a, b) in zip(alice_parities, bob_parities)])
 
             self.logger.log(f'Alice and Bob exchange blocks parities\n'
-                  f'Alice\'s parities: {''.join([str(bit) for bit in alice_parities])}\n'
-                  f'Bob\'s parities: {''.join([str(bit) for bit in bob_parities])}\n'
-                  f'{'All parities match' if matching_parities else 'There are parities that do not match - need of recursive correction'}\n')
+                            f'Alice\'s parities: {''.join([str(bit) for bit in alice_parities])}\n'
+                            f'Bob\'s parities: {''.join([str(bit) for bit in bob_parities])}\n'
+                            f'{'All parities match' if matching_parities else 'There are parities that do not match - need of recursive correction'}\n')
 
             #   rekurencyjnie
             while not matching_parities:
@@ -203,9 +214,9 @@ class SimManager(ABC):
                 matching_parities: bool = all([a == b for (a, b) in zip(alice_parities, bob_parities)])
 
                 self.logger.log(f'Alice and Bob exchange blocks parities\n'
-                      f'Alice\'s parities: {''.join([str(bit) for bit in alice_parities])}\n'
-                      f'Bob\'s parities: {''.join([str(bit) for bit in bob_parities])}\n'
-                      f'{'All parities match' if matching_parities else 'There are parities that do not match - next round of recursive correction'}\n')
+                                f'Alice\'s parities: {''.join([str(bit) for bit in alice_parities])}\n'
+                                f'Bob\'s parities: {''.join([str(bit) for bit in bob_parities])}\n'
+                                f'{'All parities match' if matching_parities else 'There are parities that do not match - next round of recursive correction'}\n')
 
             bob.flatten_blocks()
 
@@ -216,14 +227,35 @@ class SimManager(ABC):
             # sprawdzenie poprawności
             if bob.check_hash():
                 self.logger.log('Key hashes match - end of error correction\n'
-                      f'Bob has {sum([1 for (a, b) in zip(alice.keyBits, bob.keyBits) if a == b])} correct bits (~SimMaster)\n'
-                      f'{'Both keys are the same' if all([a == b for (a, b) in zip(alice.keyBits, bob.keyBits)]) else 'Keys are not the same'}')
+                                f'Bob has {sum([1 for (a, b) in zip(alice.keyBits, bob.keyBits) if a == b])} correct bits (~SimMaster)\n'
+                                f'{'Both keys are the same' if all([a == b for (a, b) in zip(alice.keyBits, bob.keyBits)]) else 'Keys are not the same'}')
                 break
 
             self.logger.log('Key hashes don\'t match - next iteration of error correction\n\n')
 
-    def _run_privacy_amplification(self):
+    def h(self) -> float:
+        x: float = 0.0
 
+        match self.protocol:
+            case 4:
+                x = 2 * self.qber
+            case 84:
+                x = self.qber
+            case 91:
+                x = (1 + ((self.S / 2) ** 2 - 1) ** 0.5 / 2)
+            case _:
+                return 0.0
+
+        if x < 0.001:
+            x = 0.001
+        if x > 0.999:
+            x = 0.999
+
+        value: float = - (x * log2(x) + (1 - x) * log2(1 - x))
+
+        return value
+
+    def _run_privacy_amplification(self):
         self.logger.log('\n--- PRIVACY AMPLIFICATION ---\n')
 
         alice = self.alice
@@ -235,11 +267,11 @@ class SimManager(ABC):
         n: int = len(self.alice.keyBits)
 
         ###
-        eves_known_bits: int = ceil(alice.qber * n)
-        security_bits : int = n - eves_known_bits
+        eves_known_bits: int = ceil(self.h() * n)
+        security_bits: int = n - eves_known_bits
 
         self.logger.log(f'Estimated bits known by Eve: {eves_known_bits}\n'
-              f'Esitmated secuirty provided by key: {security_bits} bits\n')
+                        f'Esitmated secuirty provided by key: {security_bits} bits\n')
 
         # wzmocnienie prywatności
         r_bytes: bytes = alice.send_random_bytes()
@@ -253,8 +285,8 @@ class SimManager(ABC):
         self.logger.log('Alice and Bob calculate final key')
 
         self.logger.log(f'A: {alice.key.hex()}\n'
-              f'B: {bob.key.hex()}\n'
-              f'Keys match: {alice.key == bob.key}')
+                        f'B: {bob.key.hex()}\n'
+                        f'Keys match: {alice.key == bob.key}')
 
     def update_setting(self, key: str, value):
         """Dynamiczna aktualizacja parametrów symulacji"""
@@ -299,8 +331,8 @@ class SimManager(ABC):
         self.dumpening_dB: float = self.dumpening_per_km * self.channel_length
         self.base_transform_dB: float = self.base_transform_per_km * self.channel_length
 
-        self.dumpening: float = round(1 - 10 ** (-self.dumpening_dB / 10.0),1)
-        self.base_transform: float = round(1 - 10 ** (-self.base_transform_dB / 10.0),1)
+        self.dumpening: float = round(1 - 10 ** (-self.dumpening_dB / 10.0), 1)
+        self.base_transform: float = round(1 - 10 ** (-self.base_transform_dB / 10.0), 1)
 
         # Aktualizacja obiektu Channel
         if hasattr(self, 'channel') and self.channel is not None:

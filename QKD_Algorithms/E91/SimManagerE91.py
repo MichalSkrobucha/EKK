@@ -7,6 +7,9 @@ from Common.config import cfg
 
 
 class SimManagerE91(SimManager):
+    protocol: int = 91
+    S: float = 2.0
+
     BASES_ALICE = cfg.e91.alice_bases
     BASES_BOB = cfg.e91.bob_bases
 
@@ -82,6 +85,9 @@ class SimManagerE91(SimManager):
         print("____________________\n")
         self._theoretical_result()
 
+        self._run_error_correction()
+        self._run_privacy_amplification()
+
     def _analyze_results(self):  # Eksperymentalnie liczona nierówność Bella
         """
         Faza Sifting i Testu Bella.
@@ -105,8 +111,7 @@ class SimManagerE91(SimManager):
             # Alice and Bob used same bases
             if a['base'] == b['base']:
                 raw_key_alice.append(a['bit'])
-                # W stanie splątanym wyniki są przeciwne. Bob musi odwrócić swój bit, by mieć to samo co Alicja.
-                raw_key_bob.append(1 - b['bit'])
+                raw_key_bob.append(b['bit'])
 
             # BELL TEST - CHSH inequality
             # Zliczanie korelacji dla wszystkich kombinacji
@@ -121,6 +126,9 @@ class SimManagerE91(SimManager):
         print(f"\nWygenerowano surowy klucz o długości: {len(raw_key_alice)} bitów")
         print(f"Klucz Alicji: {raw_key_alice}")
         print(f"Klucz Boba:   {raw_key_bob}")
+
+        self.alice.keyBits = raw_key_alice
+        self.bob.keyBits = raw_key_bob
 
         # Wzór na E: E = (N_same - N_diff) / (N_same + N_diff)
         def get_E(idx_a, idx_b):
@@ -151,6 +159,8 @@ class SimManagerE91(SimManager):
             print(">> SUKCES: Nierówność Bella złamana! (Bezpieczeństwo potwierdzone)")
         else:
             print(">> OSTRZEŻENIE: Brak kwantowych korelacji lub zbyt duży szum.")
+
+        self.S = S
 
     def _theoretical_result(self):
         def get_theoretical_E(angle_a_deg, angle_b_deg):
@@ -198,31 +208,6 @@ class SimManagerE91(SimManager):
             print("\n>> SUKCES: Wynik łamie nierówność Bella.")
         else:
             print("\n>> UWAGA: Coś nie tak z kątami.")
-
-    @override
-    def _run_privacy_amplification(self):
-
-        print('\n--- PRIVACY AMPLIFICATION ---\n')
-
-        alice = self.alice
-        bob = self.bob
-
-        print(f'Alice and Bob have {len(self.alice.keyBits)} bits\n')
-
-        # wzmocnienie prywatności
-        r_bytes: bytes = alice.send_random_bytes()
-        bob.get_random_bytes(r_bytes)
-
-        print(f'Alice send random bytes ({alice.bytes_count}): {alice.random_bytes.hex()}\n')
-
-        alice.get_final_key()
-        bob.get_final_key()
-
-        print('Alice and Bob calculate final key')
-
-        print(f'A: {alice.key.hex()}\n'
-              f'B: {bob.key.hex()}\n'
-              f'Keys match: {alice.key == bob.key}')
 
     @override
     def update_setting(self, key: str, value):

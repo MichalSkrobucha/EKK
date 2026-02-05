@@ -17,7 +17,7 @@ from SARG04.BobSARG import BobSARG
 from SARG04.EveSARG import EveSARG
 
 # --- Ekert91 Dependencies ---
-from E91.PhotonE91 import PhotonE91, EntanglemetController
+from E91.PhotonE91 import PhotonE91
 from E91.ChannelE91 import ChannelE91
 from E91.AliceE91 import AliceE91
 from E91.BobE91 import BobE91
@@ -90,10 +90,7 @@ class E91Container(containers.DeclarativeContainer):
     #     channel=channel,
     #     logger=logger
     # )
-    controller_factory = providers.Object(EntanglemetController)
     source = providers.Singleton(
-        Source,
-        logger=logger,
-        photon_factory=photon_factory,
-        controller_factory=controller_factory
+        Source
+        #,photon_factory=photon_factory
     )

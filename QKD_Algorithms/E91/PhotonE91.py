@@ -1,82 +1,61 @@
-from random import randint
 from random import randint, random
+
+from math import cos, radians
 
 
 class PhotonE91:
     def __init__(self) -> None:
         """
-        :param base: 0-360 - base expressed in degrees
-        :param bit: 0 - vertical/diagonal to right (| /), 1 - horizontal/diagonal to left (_ \\)   (respecitvely in + and x basis)
+        :param polarisation: 0-360 - base expressed in degrees
         """
-        self.base: int | None = None  # base is defined by measure, otherwise it is unknown
-        self.bit: int | None = None  # bit is defined by measure, otherwise it is unknown
+        self.polarisation: float | None = None
+        self.entagled: list['Photon'] = []
 
-        self.controller: EntanglemetController | None = None
+    def measure(self, base: float) -> int:
+        """
+        bit: 0 - if measurment is like given base (0, 22.5, 45, 67.5), 1 - if orthogonal (90, 112.5, 135, 157.5)
+        """
+        if self.polarisation is None:
+            b: int = randint(0, 1)
 
-    def measure(self, base: int) -> int:
-        bit: int = -1
-
-        if self.base:
-            if base == self.base:
-                bit = self.bit
+            if b == 0:
+                self.polarisation = base
             else:
-                bit = randint(0, 1)
+                self.polarisation = base + 90.0
+
+            for ph in self.entagled:
+                ph.set_polarisation(self.polarisation, self)
+
+            return b
+
         else:
-            bit = self.controller.measure_photon(self, base)
-            self.bit = bit
-            self.base = base
-
-        return bit
-
-
-Photon = PhotonE91
-
-
-class EntanglemetController:
-    def __init__(self, photons: list[Photon], distribution: list[float]):
-        self.photons: list[Photon] = photons
-        self.distribution: list[float] = distribution
-
-        for ph in self.photons:
-            ph.controller = self
-
-    def measure_photon(self, photon: Photon, base: int):
-        id = self.photons.index(photon)
-        self.photons.remove(photon)
-
-        # states in which given photon has given value
-        states0: list[float] = []
-        states1: list[float] = []
-
-        # probability of photon having value
-        p0: float = 0.0
-        p1: float = 0.0
-
-        for (state, p) in enumerate(self.distribution):
-            bit_in_state: int = (state // (2 ** id)) % 2
-
-            if bit_in_state == 0:
-                p0 += p
-                states0 += [p]
+            if self.polarisation == base:
+                return 0
             else:
-                p1 += p
-                states1 += [p]
+                sq_cos: float = cos(radians(self.polarisation - base)) ** 2
+                r: float = random()
 
-        bit: int = 1
+                if r <= sq_cos:
+                    # measured same as base
+                    self.polarisation = base
+                    return 0
+                else:
+                    self.polarisation = base + 90.0
+                    return 1
 
-        if random() <= p0:
-            bit = 0
+    def entangle(self, others: list['Photon']) -> None:
+        self.entagled = list(others)
 
-        s: float = 0.0
+        try:
+            self.entagled.remove(self)
+        except:
+            pass
 
-        if bit == 0:
-            s = sum(states0)
-            self.distribution = states0
-        else:
-            s = sum(states1)
-            self.distribution = states1
+    def set_polarisation(self, polarisation: float, ph: 'Photon') -> None:
+        if self.polarisation is None:
+            self.polarisation = polarisation
 
-        for i in range(len(self.distribution)):
-            self.distribution[i] = self.distribution[i] / s
-
-        return bit
+        try:
+            self.entagled.remove(ph)
+        except:
+            pass
