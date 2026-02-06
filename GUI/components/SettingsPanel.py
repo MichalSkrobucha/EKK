@@ -15,14 +15,16 @@ class SettingsPanel(QWidget):
         self.layout.setContentsMargins(5, 5, 5, 5)
         self.layout.setSpacing(15)
 
-        # Budowanie sekcji wspólnych (Sim, Channel)
+        # Budowanie sekcji wspólnych (Sim)
         self.add_sim_section()
-        self.add_channel_section()
-        self.common_section()
 
         # Różne ustawienia dla różnych protokołów
         if self.protocol_name in ["BB84", "SARG04"]:
+            self.add_channel_section()
+            self.common_section()
+
             self.add_bb84_sarg_controls()
+
         elif self.protocol_name == "E91":
             self.add_e91_controls()
 
@@ -150,22 +152,43 @@ class SettingsPanel(QWidget):
     # E91
     def add_e91_controls(self):
         # SOURCE
-        self.form_source = self.create_group("🌟 Entangled Source")
+        # self.form_source = self.create_group("🌟 Entangled Source")
+        #
+        # self.spin_n_photons = QSpinBox()
+        # self.spin_n_photons.setRange(1, 10)
+        # self.spin_n_photons.setValue(cfg.e91.n_photons)
+        # self.form_source.addRow("N Photons:", self.spin_n_photons)
+        # self.spin_n_photons.valueChanged.connect(
+        #     lambda val: self.sig_setting_changed.emit("n_photons", val)
+        # )
+        #
+        # self.combo_dist = QComboBox()
+        # self.combo_dist.addItems(["PDC (Parametric Down-Conversion)", "Ideal Bell State"])
+        # self.form_source.addRow("Distribution:", self.combo_dist)
+        # self.combo_dist.editTextChanged.connect(
+        #     lambda val: self.sig_setting_changed.emit("distribution", val)
+        # )
 
-        self.spin_n_photons = QSpinBox()
-        self.spin_n_photons.setRange(1, 10)
-        self.spin_n_photons.setValue(cfg.e91.n_photons)
-        self.form_source.addRow("N Photons:", self.spin_n_photons)
-        self.spin_n_photons.valueChanged.connect(
-            lambda val: self.sig_setting_changed.emit("n_photons", val)
-        )
+        # PARMS - P & S_THRESHOLD
 
-        self.combo_dist = QComboBox()
-        self.combo_dist.addItems(["PDC (Parametric Down-Conversion)", "Ideal Bell State"])
-        self.form_source.addRow("Distribution:", self.combo_dist)
-        self.combo_dist.editTextChanged.connect(
-            lambda val: self.sig_setting_changed.emit("distribution", val)
-        )
+        self.form_params = self.create_group("Parameters")
+        self.p_spin = QDoubleSpinBox()
+        self.p_spin.setRange(0.01, 1.00)
+        self.p_spin.setValue(1.0)
+        self.p_spin.setSingleStep(0.01)
+
+        self.form_params.addRow("Probability of entanglement: ", self.p_spin)
+        self.p_spin.valueChanged.connect(
+            lambda val: self.sig_setting_changed.emit("p", val))
+
+        self.s_spin = QDoubleSpinBox()
+        self.s_spin.setRange(1.41, 2.82)
+        self.s_spin.setValue(2.0)
+        self.s_spin.setSingleStep(0.01)
+
+        self.form_params.addRow("S Threshold: ", self.s_spin)
+        self.s_spin.valueChanged.connect(
+            lambda val: self.sig_setting_changed.emit("s_thresh", val))
 
         # ALICE
         self.form_alice = self.create_group("👩 Alice (Analyzer)")
@@ -178,11 +201,13 @@ class SettingsPanel(QWidget):
             lambda: self.sig_setting_changed.emit("alice_bases", self.input_alice_bases.text())
         )
 
+        self.input_alice_bases.setEnabled(False)
+
         # BOB
         self.form_bob = self.create_group("👨 Bob (Analyzer)")
 
-        self.form_bob.addRow("Efficiency:", self.spin_bob_eff)
-        self.form_bob.addRow("Internal Error:", self.spin_bob_error)
+        # self.form_bob.addRow("Efficiency:", self.spin_bob_eff)
+        # self.form_bob.addRow("Internal Error:", self.spin_bob_error)
 
         self.input_bob_bases = QLineEdit(", ".join(map(str, cfg.e91.bob_bases.values())))
         self.form_bob.addRow("Bases (Angles):", self.input_bob_bases)
@@ -190,8 +215,19 @@ class SettingsPanel(QWidget):
         self.input_bob_bases.editingFinished.connect(
             lambda: self.sig_setting_changed.emit("bob_bases", self.input_bob_bases.text())
         )
+
+        self.input_bob_bases.setEnabled(False)
         #
-        # EVE TODO?
+        # EVE
+        self.form_eve = self.create_group("🕵️ Eve (Eavesdropper)")
+        self.check_eve = QComboBox()
+        self.check_eve.addItems(
+            ["No Eve", "Measure after base exchange", "Eve measure before Alice", "Eve measures between Alice & Bob",
+             "Eve measures after Bob"])
+        self.check_eve.currentTextChanged.connect(
+            lambda val: self.sig_setting_changed.emit("eve_mode", val)
+        )
+        self.form_eve.addRow("Eve Mode:", self.check_eve)
 
     @staticmethod
     def on_bases_change(self, value, sim_variable):
@@ -212,5 +248,3 @@ class SettingsPanel(QWidget):
     def unlock_settings(self):
         """Odblokowuje edycję"""
         self.set_inputs_enabled(True)
-
-

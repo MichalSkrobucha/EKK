@@ -12,6 +12,8 @@ class SimManagerE91(SimManager):
     protocol: int = 91
     S: float = 2.0
 
+    S_Threshhold: float = 2.0
+
     BASES_ALICE = list(cfg.e91.alice_bases.keys())
     BASES_BOB = list(cfg.e91.bob_bases.keys())
     BASES_EVE = list(cfg.e91.eve_bases.keys())
@@ -19,7 +21,7 @@ class SimManagerE91(SimManager):
 
     p: float = 1.0
 
-    eveMode: int = 0
+    eveMode: int = -1
 
     # -1 - noEve,
     # 0 - eve measures after eavsdropping bases,
@@ -137,7 +139,7 @@ class SimManagerE91(SimManager):
         print("____________________\n")
         self._theoretical_result()
 
-        if self.S >= 2.0:
+        if self.S >= self.S_Threshhold:
             self._run_error_correction()
             self._run_privacy_amplification()
         else:
@@ -230,7 +232,7 @@ class SimManagerE91(SimManager):
         print(f"E(A2, B3) = {E_A2_B3:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[3]}")
         print(f"Wartość parametru S = {S:.4f}")
 
-        if S > 2.0:
+        if S > self.S_Threshhold:
             print(">> SUKCES: Nierówność Bella złamana! (Bezpieczeństwo potwierdzone)")
         else:
             print(">> OSTRZEŻENIE: Brak kwantowych korelacji lub zbyt duży szum.")
@@ -338,3 +340,15 @@ class SimManagerE91(SimManager):
         elif key == "bob_bases":  # TODO
             if hasattr(self.alice, 'bases'):
                 self.bob.bases = value
+
+        elif key == "eve_mode":
+            id = ["No Eve", "Measure after base exchange", "Eve measure before Alice",
+                  "Eve measures between Alice & Bob", "Eve measures after Bob"].index(value)
+
+            self.eveMode = id - 1
+
+        elif key == "s_thresh":
+            self.S_Threshhold = float(value)
+
+        elif key == "p":
+            self.p = float(value)
