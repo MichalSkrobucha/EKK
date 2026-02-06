@@ -1,6 +1,5 @@
 * E91 ~ M
  ** 3-Qubit attack, connect to GUI (eveMode, p, S threshhold)
- ** Analysis: p, S, QBER (no Eve, Eve 1, Eve 2)
 
 * Authentication Analysis ~ M
 
