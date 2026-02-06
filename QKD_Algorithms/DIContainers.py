@@ -21,6 +21,7 @@ from E91.PhotonE91 import PhotonE91
 from E91.ChannelE91 import ChannelE91
 from E91.AliceE91 import AliceE91
 from E91.BobE91 import BobE91
+from E91.EveE91 import EveE91
 from E91.Source import Source
 
 
@@ -75,6 +76,7 @@ class E91Container(containers.DeclarativeContainer):
     photon_factory = providers.Object(PhotonE91)
     channel_A = providers.Singleton(ChannelE91, logger=logger)
     channel_B = providers.Singleton(ChannelE91, logger=logger)
+    channel_E = providers.Singleton(ChannelE91, logger=logger)
     alice = providers.Singleton(
         AliceE91,
         channel=channel_A,
@@ -85,12 +87,12 @@ class E91Container(containers.DeclarativeContainer):
         channel=channel_B,
         logger=logger
     )
-    # eve = providers.Singleton(
-    #     EveSARG,
-    #     channel=channel,
-    #     logger=logger
-    # )
+    eve = providers.Singleton(
+        EveE91,
+        channel=channel_E,
+        logger=logger
+    )
     source = providers.Singleton(
         Source
-        #,photon_factory=photon_factory
+        # ,photon_factory=photon_factory
     )

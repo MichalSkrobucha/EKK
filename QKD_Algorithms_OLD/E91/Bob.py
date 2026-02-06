@@ -6,17 +6,21 @@ from .Photon import Photon
 from math import ceil
 from hashlib import sha256
 
+
 class Bob:
     channel: Channel
     bases: dict = {}
     results: list[dict] = []
     raw_key: list[int]
 
-    def __init__(self, channel: Channel, bases: dict):
+    def __init__(self, channel: Channel, avaliable_bases: list, bases_dict: dict):
         self.channel = channel
         self.channel.name = "channel_B"
-        self.bases = bases
-        self.raw_key : list[int] = []
+        self.avaliable_bases = avaliable_bases
+        self.bases_dict = bases_dict
+        self.raw_key: list[int] = []
+
+        self.test_key = []
 
         self.i: int = 0
 
@@ -40,10 +44,13 @@ class Bob:
     def receive(self) -> None:
         if len(self.channel.container) > 0:
             photon: Photon = self.channel.read()[0]  # Only 1 photon for now
-            base_idx = random.choice([1, 2, 3])
-            angle = self.bases[base_idx]
-            bit = photon.measure(angle)
-            self.results.append({'base_idx': base_idx, 'base': angle, 'bit': bit})
+            base_idx = random.choice(self.avaliable_bases)
+            base = self.bases_dict[base_idx]
+            bit = photon.measure(base)
+
+            print(f'Bob measured bit {bit} in base {base_idx}')
+
+            self.results.append({'base_idx': base_idx, 'base': base, 'bit': bit})
 
     def prepareForErrorCorrection(self):
         self.keyBits = [1 - b for b in self.raw_key]
@@ -120,9 +127,9 @@ class Bob:
 
     def get_final_key(self) -> None:
         self.keyBits += [0] * (8 - len(self.keyBits) % 8)
-        quads : list[list[int]] = [self.keyBits[i : i + 4] for i in range(0, len(self.keyBits), 4)]
-        quad_vals : list[int] = [sum([2**(3 - i) * b for (i, b) in enumerate(q)]) for q in quads]
-        quad_hex : list[str] = [hex(q)[2:] for q in quad_vals]
-        hex_bytes : str = ''.join(quad_hex)
-        b : bytes = bytes.fromhex(hex_bytes) + self.random_bytes
+        quads: list[list[int]] = [self.keyBits[i: i + 4] for i in range(0, len(self.keyBits), 4)]
+        quad_vals: list[int] = [sum([2 ** (3 - i) * b for (i, b) in enumerate(q)]) for q in quads]
+        quad_hex: list[str] = [hex(q)[2:] for q in quad_vals]
+        hex_bytes: str = ''.join(quad_hex)
+        b: bytes = bytes.fromhex(hex_bytes) + self.random_bytes
         self.key = sha256(b).digest()

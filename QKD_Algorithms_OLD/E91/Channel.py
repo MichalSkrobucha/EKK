@@ -18,7 +18,7 @@ class Channel:
         :param photons: Alice's photon impulse
         """
         self.container.extend(photons)
-        logger.log(f"Channel {self.name} received {len(self.container)} photons")
+        # logger.log(f"Channel {self.name} received {len(self.container)} photons")
 
     def read(self) -> list[Photon]:
         """
@@ -27,5 +27,5 @@ class Channel:
         # Płytka kopia listy (list slicing) - przekazuje te same obiekty fotonów
         read_container = self.container[:]
         self.container.clear()
-        logger.log(f"Channel {self.name} output: {len(read_container)} photons have been read")
+        # logger.log(f"Channel {self.name} output: {len(read_container)} photons have been read")
         return read_container

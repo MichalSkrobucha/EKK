@@ -1,6 +1,7 @@
 from .Alice import Alice
 from .Bob import Bob
-from.Channel import Channel
+from .Eve import Eve
+from .Channel import Channel
 from .Source import Source
 from QKD_Algorithms_OLD.Logger import SimLogger
 import math
@@ -15,38 +16,75 @@ class SimManager:
     sim_start: int = 0
     sim_step: int = 1
     sim_end: int = 1000
-    qberThreshhold: float = 0.2
-    ifEve: bool = True
+    ifEve: int = -1  # -1 - noEve, 0 - Eve measures after sieving baes, 1 - E before AB, 2 - E between A&B, 3 - E after AB
     logs: bool = True
 
-    BASES_ALICE = {1: 0, 2: 22.5, 3: 45}
-    BASES_BOB = {1: 22.5, 2: 45, 3: 67.5}
+    p: float = 1.0
+
+    bases: dict[int, float] = {0: 0.0, 1: 22.5, 2: 45.0, 3: 67.5}
+
+    BASES_ALICE = [0, 1, 2]
+    BASES_BOB = [1, 2, 3]
 
     def __init__(self):
         self.channel_alice = Channel()
         self.channel_bob = Channel()
+        self.channel_eve = Channel()
 
-        self.alice = Alice(self.channel_alice, self.BASES_ALICE)
-        self.bob = Bob(self.channel_bob, self.BASES_BOB)
+        self.alice = Alice(self.channel_alice, self.BASES_ALICE, self.bases)
+        self.bob = Bob(self.channel_bob, self.BASES_BOB, self.bases)
+        self.eve = Eve(self.channel_eve, self.BASES_ALICE, self.bases)
         logger.set_time(self.sim_start)
 
     def simLoop(self):
         """
         Simulates QKD (du-uh)
         """
-        source = Source()
+        source = Source(n=2 if self.ifEve < 0 else 3, p=self.p)
 
         for step in range(self.sim_start, self.sim_end, self.sim_step):
             # Alice sends bits (impulses of photons) to Bob
             logger.msg(f"=====================")
             logger.set_time(step)
             # Generating pair
-            photon_A, photon_B = source.generate()
-            self.channel_alice.send([photon_A])
-            self.channel_bob.send([photon_B])
 
-            self.alice.receive()
-            self.bob.receive()
+            if self.ifEve < 0:
+                photon_A, photon_B = source.generate()
+                self.channel_alice.send([photon_A])
+                self.channel_bob.send([photon_B])
+
+                self.alice.receive()
+                self.bob.receive()
+            else:
+                photon_A, photon_B, photon_E = source.generate()
+                self.channel_alice.send([photon_A])
+                self.channel_bob.send([photon_B])
+                self.channel_eve.send([photon_E])
+
+                match self.ifEve:
+                    case 0:
+                        self.alice.receive()
+                        self.bob.receive()
+
+                        self.eve.receive()
+                    case 1:
+                        self.eve.receive_and_measure()
+
+                        self.alice.receive()
+                        self.bob.receive()
+                    case 2:
+                        self.alice.receive()
+
+                        self.eve.receive_and_measure()
+
+                        self.bob.receive()
+                    case 3:
+                        self.alice.receive()
+                        self.bob.receive()
+
+                        self.eve.receive_and_measure()
+                    case _:
+                        pass
 
         print("\n________________________")
         print("--- EKSPERYMENTALNIE ---")
@@ -56,7 +94,6 @@ class SimManager:
         print("--- TEORETYCZNIE ---")
         print("____________________\n")
         self.theoretical_result()
-
 
         # error_correction
         self.alice.prepareForErrorCorrection()

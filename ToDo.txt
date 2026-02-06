@@ -1,16 +1,9 @@
 * E91 ~ M
- ** 3-Qubit attack
-  *** and connect to GUI
+ ** 3-Qubit attack, connect to GUI (eveMode, p, S threshhold)
+ ** Analysis: p, S, QBER (no Eve, Eve 1, Eve 2)
 
 * Authentication Analysis ~ M
 
- * Update how many bits Eve knows ~M
-  ** BB84, SARG04, E91
-
-
-
-* GUI ~ N
- ** Connect to mains
 
 * Analysis ~ N
  ** Remove Zero-Division-Error

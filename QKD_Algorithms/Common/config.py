@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class SimulationConfig:
-    qber_threshold: float = 25 # %
+    qber_threshold: float = 25  # %
     key_length: int = 1024
 
 
@@ -26,8 +26,10 @@ class BB84Config:
 @dataclass(frozen=True)
 class E91Config:
     n_photons: int = 1000
-    alice_bases = {1: 0, 2: 22.5, 3: 45}
-    bob_bases = {1: 22.5, 2: 45, 3: 67.5}
+    bases_dict = {0: 0.0, 1: 22.5, 2: 45.0, 3: 67.5}
+    alice_bases = {0: 0.0, 1: 22.5, 2: 45.0}
+    bob_bases = {1: 22.5, 2: 45.0, 3: 67.5}
+    eve_bases = {1: 22.5, 2: 45.0}
 
 
 @dataclass(frozen=True)

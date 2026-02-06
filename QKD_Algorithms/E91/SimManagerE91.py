@@ -5,24 +5,40 @@ from DIContainers import E91Container
 from Common.SimManager import SimManager
 from Common.config import cfg
 
+from .Source import Source
+
 
 class SimManagerE91(SimManager):
     protocol: int = 91
     S: float = 2.0
 
-    BASES_ALICE = cfg.e91.alice_bases
-    BASES_BOB = cfg.e91.bob_bases
+    BASES_ALICE = list(cfg.e91.alice_bases.keys())
+    BASES_BOB = list(cfg.e91.bob_bases.keys())
+    BASES_EVE = list(cfg.e91.eve_bases.keys())
+    BASES_DICT = cfg.e91.bases_dict
+
+    p: float = 0.95
+
+    eveMode: int = -1
+
+    # -1 - noEve,
+    # 0 - eve measures after eavsdropping bases,
+    # 1 - eve measures before AB,
+    # 2 - eve measures between A&B,
+    # 3 - eve measures after AB
 
     def __init__(self):
         self._recalculate_channel_params()
         self.channel_alice = E91Container.channel_A()
         self.channel_bob = E91Container.channel_B()
-        alice = E91Container.alice(self.BASES_ALICE)
-        bob = E91Container.bob(self.BASES_BOB)
-        self.source = E91Container.source()
+        self.channel_eve = E91Container.channel_E()
+        alice = E91Container.alice(self.BASES_ALICE, self.BASES_DICT)
+        bob = E91Container.bob(self.BASES_BOB, self.BASES_DICT)
+        eve = E91Container.eve(self.BASES_EVE, self.BASES_DICT)
+        self.source = Source(n=2 if self.eveMode < 0 else 3, p=self.p)
         logger = E91Container.logger()
 
-        super().__init__(None, alice, bob, None, logger, "E91")
+        super().__init__(None, alice, bob, eve, logger, "E91")
 
     def simLoop(self):
         """
@@ -68,12 +84,43 @@ class SimManagerE91(SimManager):
     @override
     def _sim_transmition_step(self):
         # Generating pair
-        photon_A, photon_B = self.source.generate()
-        self.channel_alice.send([photon_A])
-        self.channel_bob.send([photon_B])
+        if self.eveMode < 0:
+            photon_A, photon_B = self.source.generate()
+            self.channel_alice.send([photon_A])
+            self.channel_bob.send([photon_B])
 
-        self.alice.receive()
-        self.bob.receive()
+            self.alice.receive()
+            self.bob.receive()
+        else:
+            photon_A, photon_B, photon_E = self.source.generate()
+            self.channel_alice.send([photon_A])
+            self.channel_bob.send([photon_B])
+            self.channel_eve.send([photon_E])
+
+            match self.eveMode:
+                case 0:
+                    self.alice.receive()
+                    self.bob.receive()
+
+                    self.eve.receive()
+                case 1:
+                    self.eve.receive_and_measure()
+
+                    self.alice.receive()
+                    self.bob.receive()
+                case 2:
+                    self.alice.receive()
+
+                    self.eve.receive_and_measure()
+
+                    self.bob.receive()
+                case 3:
+                    self.alice.receive()
+                    self.bob.receive()
+
+                    self.eve.receive_and_measure()
+                case _:
+                    pass
 
     def _sim_analysis_step(self):
         print("\n________________________")
@@ -85,8 +132,11 @@ class SimManagerE91(SimManager):
         print("____________________\n")
         self._theoretical_result()
 
-        self._run_error_correction()
-        self._run_privacy_amplification()
+        if self.S >= 2.0:
+            self._run_error_correction()
+            self._run_privacy_amplification()
+        else:
+            print('Transmission won\'t be continued')
 
     def _analyze_results(self):  # Eksperymentalnie liczona nierówność Bella
         """
@@ -106,6 +156,9 @@ class SimManagerE91(SimManager):
             # Para baz użyta w tej rundzie
             pair_key = (a['base_idx'], b['base_idx'])
 
+            if self.eveMode >= 0:
+                self.eve.eavsdrop_bases(pair_key[0], pair_key[1])
+
             # KEY GENERATION
 
             # Alice and Bob used same bases
@@ -123,6 +176,14 @@ class SimManagerE91(SimManager):
             else:
                 stats[pair_key]['diff'] += 1
 
+        match self.eveMode:
+            case 0:
+                self.eve.sieve_and_measure()
+            case -1:
+                pass  # no Eve
+            case _:
+                self.eve.sieve()
+
         print(f"\nWygenerowano surowy klucz o długości: {len(raw_key_alice)} bitów")
         print(f"Klucz Alicji: {raw_key_alice}")
         print(f"Klucz Boba:   {raw_key_bob}")
@@ -139,20 +200,20 @@ class SimManagerE91(SimManager):
             if s + d == 0: return 0
             return (s - d) / (s + d)
 
-        E_A1_B1 = get_E(1, 1)
-        E_A1_B3 = get_E(1, 3)
-        E_A3_B1 = get_E(3, 1)
-        E_A3_B3 = get_E(3, 3)
+        E_A0_B1 = float(get_E(0, 1))
+        E_A0_B3 = float(get_E(0, 3))
+        E_A2_B1 = float(get_E(2, 1))
+        E_A2_B3 = float(get_E(2, 3))
 
         # Wzór na S dla zestawu kątów A1, A3, B1, B3:
         # S = |E(A1, B1) - E(A1, B3) + E(A3, B1) + E(A3, B3)|
-        S = abs(E_A1_B1 - E_A1_B3 + E_A3_B1 + E_A3_B3)
+        S = abs(E_A0_B1 - E_A0_B3 + E_A2_B1 + E_A2_B3)
 
         print("\n--- Test Nierówności Bella (CHSH) ---")
-        print(f"E(A1, B1) = {E_A1_B1:.4f}    Bases: {self.alice.bases[1]}, {self.bob.bases[1]}")
-        print(f"E(A1, B3) = {E_A1_B3:.4f}    Bases: {self.alice.bases[1]}, {self.bob.bases[3]}")
-        print(f"E(A3, B1) = {E_A3_B1:.4f}    Bases: {self.alice.bases[3]}, {self.bob.bases[1]}")
-        print(f"E(A3, B3) = {E_A3_B3:.4f}    Bases: {self.alice.bases[3]}, {self.bob.bases[3]}")
+        print(f"E(A0, B1) = {E_A0_B1:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[1]}")
+        print(f"E(A0, B3) = {E_A0_B3:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[1]}")
+        print(f"E(A2, B1) = {E_A2_B1:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[3]}")
+        print(f"E(A2, B3) = {E_A2_B3:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[3]}")
         print(f"Wartość parametru S = {S:.4f}")
 
         if S > 2.0:
@@ -170,44 +231,58 @@ class SimManagerE91(SimManager):
             delta = theta_A - theta_B
             return -math.cos(2 * delta)
 
-        def get_S_for_pair(base_idx_1, base_idx_2):
-            val_A1_B1 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_1])
-            val_A1_B2 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_2])
-            val_A2_B1 = get_theoretical_E(self.alice.bases[base_idx_2], self.bob.bases[base_idx_1])
-            val_A2_B2 = get_theoretical_E(self.alice.bases[base_idx_2], self.bob.bases[base_idx_2])
+        E_A0_B1 = float(get_theoretical_E(self.BASES_DICT[0], self.BASES_DICT[1]))
+        E_A0_B3 = float(get_theoretical_E(self.BASES_DICT[0], self.BASES_DICT[1]))
+        E_A2_B1 = float(get_theoretical_E(self.BASES_DICT[2], self.BASES_DICT[3]))
+        E_A2_B3 = float(get_theoretical_E(self.BASES_DICT[2], self.BASES_DICT[3]))
 
-            print(
-                f"E(A{base_idx_1}, B{base_idx_1}) [{self.alice.bases[base_idx_1]} vs {self.bob.bases[base_idx_1]}]  = {val_A1_B1:.4f}")
-            print(
-                f"E(A{base_idx_1}, B{base_idx_2}) [{self.alice.bases[base_idx_1]} vs {self.bob.bases[base_idx_2]}]  = {val_A1_B2:.4f}")
-            print(
-                f"E(A{base_idx_2}, B{base_idx_1}) [{self.alice.bases[base_idx_2]} vs {self.bob.bases[base_idx_1]}] = {val_A2_B1:.4f}")
-            print(
-                f"E(A{base_idx_2}, B{base_idx_2}) [{self.alice.bases[base_idx_2]} vs {self.bob.bases[base_idx_2]}] = {val_A2_B2:.4f}")
+        S_theoretical = abs(E_A0_B1 - E_A0_B3 + E_A2_B1 + E_A2_B3)
 
-            # S = |E(A1, B1) - E(A1, B3) + E(A3, B1) + E(A3, B3)|
-            S_theoretical = abs(val_A1_B1 - val_A1_B2 + val_A2_B1 + val_A2_B2)
-            print(
-                f"Teoretyczne S ({self.alice.bases[base_idx_1]},{self.alice.bases[base_idx_2]}) = {S_theoretical:.5f}\n")
-            return S_theoretical
+        print(f"E(A0, B1)  = {E_A0_B1:.4f}")
+        print(f"E(A0, B3) = {E_A0_B3:.4f}")
+        print(f"E(A2, B1) = {E_A2_B1:.4f}")
+        print(f"E(A2, B3) = {E_A2_B3:.4f}")
 
-        def find_max_S():
-            indices = [1, 2, 3]
-            results = {}
-            for idx1, idx2 in combinations(indices, 2):
-                s_val = get_S_for_pair(idx1, idx2)
-                results[(idx1, idx2)] = s_val
+        print(f"Teoretyczne S = {S_theoretical:.5f}\n")
 
-            best_pair = max(results, key=results.get)
-            max_S = results[best_pair]
-            print(f"\n>>> ZWYCIĘZCA: Para indeksów {best_pair}")
-            print(f">>> Maksymalne S = {max_S:.5f}")
-            return max_S
+        # def get_S_for_pair(base_idx_1, base_idx_2):
+        #     val_A1_B1 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_1])
+        #     val_A1_B2 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_2])
+        #     val_A2_B1 = get_theoretical_E(self.alice.bases[base_idx_2], self.bob.bases[base_idx_1])
+        #     val_A2_B2 = get_theoretical_E(self.alice.bases[base_idx_2], self.bob.bases[base_idx_2])
+        #
+        #     print(
+        #         f"E(A{base_idx_1}, B{base_idx_1}) [{self.alice.bases[base_idx_1]} vs {self.bob.bases[base_idx_1]}]  = {val_A1_B1:.4f}")
+        #     print(
+        #         f"E(A{base_idx_1}, B{base_idx_2}) [{self.alice.bases[base_idx_1]} vs {self.bob.bases[base_idx_2]}]  = {val_A1_B2:.4f}")
+        #     print(
+        #         f"E(A{base_idx_2}, B{base_idx_1}) [{self.alice.bases[base_idx_2]} vs {self.bob.bases[base_idx_1]}] = {val_A2_B1:.4f}")
+        #     print(
+        #         f"E(A{base_idx_2}, B{base_idx_2}) [{self.alice.bases[base_idx_2]} vs {self.bob.bases[base_idx_2]}] = {val_A2_B2:.4f}")
+        #
+        #     # S = |E(A1, B1) - E(A1, B3) + E(A3, B1) + E(A3, B3)|
+        #     S_theoretical = abs(val_A1_B1 - val_A1_B2 + val_A2_B1 + val_A2_B2)
+        #     print(
+        #         f"Teoretyczne S ({self.alice.bases[base_idx_1]},{self.alice.bases[base_idx_2]}) = {S_theoretical:.5f}\n")
+        #     return S_theoretical
 
-        if find_max_S() > 2:
-            print("\n>> SUKCES: Wynik łamie nierówność Bella.")
-        else:
-            print("\n>> UWAGA: Coś nie tak z kątami.")
+        # def find_max_S():
+        #     indices = [1, 2, 3]
+        #     results = {}
+        #     for idx1, idx2 in combinations(indices, 2):
+        #         s_val = get_S_for_pair(idx1, idx2)
+        #         results[(idx1, idx2)] = s_val
+        #
+        #     best_pair = max(results, key=results.get)
+        #     max_S = results[best_pair]
+        #     print(f"\n>>> ZWYCIĘZCA: Para indeksów {best_pair}")
+        #     print(f">>> Maksymalne S = {max_S:.5f}")
+        #     return max_S
+
+        # if find_max_S() > 2:
+        #     print("\n>> SUKCES: Wynik łamie nierówność Bella.")
+        # else:
+        #     print("\n>> UWAGA: Coś nie tak z kątami.")
 
     @override
     def update_setting(self, key: str, value):
