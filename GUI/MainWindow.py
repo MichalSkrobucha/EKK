@@ -35,8 +35,6 @@ class MainWindow(QMainWindow):
         self.vertical_tabs.setTabPosition(QTabWidget.TabPosition.West)
         self.vertical_tabs.setMovable(False)
 
-        # Dodawanie stron protokołów
-        # Każda strona to osobna instancja ProtocolPage
         self.vertical_tabs.addTab(self.create_protocol_page("BB84"), "BB84")
         self.vertical_tabs.addTab(self.create_protocol_page("SARG04"), "SARG04")
         self.vertical_tabs.addTab(self.create_protocol_page("E91"), "E91")

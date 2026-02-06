@@ -1,47 +1,51 @@
-# --- KONFIGURACJA KOLORÓW ---
+# --- KONFIGURACJA KOLORÓW (DOMYŚLNY - DRACULA) ---
 COLORS = {
-    "bg_dark": "#1e1e2e",  # Główne tło okna
-    "bg_panel": "#282a36",  # Tło paneli, inputów, nieaktywnych zakładek
-    "bg_selected": "#44475a",  # Tło zaznaczonych elementów
+    "bg_dark": "#1e1e2e",  # Główne tło (Bardzo ciemny fiolet/czerń)
+    "bg_panel": "#282a36",  # Tło paneli
+    "bg_selected": "#44475a",  # Zaznaczenie
 
-    "text": "#f8f8f2",  # Główny kolor tekstu
+    "text": "#f8f8f2",  # Biały tekst
 
-    "accent": "#bd93f9",  # Fioletowy (Tekst zakładek, Przyciski)
-    "highlight": "#ff79c6",  # Różowy (Hover, Aktywne elementy)
-    "secondary": "#6272a4",  # Szaro-niebieski (Obramowania GroupBox)
+    "accent": "#bd93f9",  # Fioletowy (Przyciski, Aktywne Tabs)
+    "highlight": "#ff79c6",  # Różowy (Hover)
+    "secondary": "#6272a4",  # Szaro-niebieski (Ramki)
 
-    "button_text": "#282a36",  # Ciemny tekst na jasnym przycisku
+    "button_text": "#282a36",  # Ciemny tekst na przycisku
     "icon_color": "#f8f8f2",
     "icon_active": "#bd93f9",
     "bg_table": "#282a36",
-    "gridline": "#44475a"
+    "gridline": "#44475a",
+
+    "success": "#50fa7b",  # Jasny zielony
+    "error": "#ff5555"  # Czerwony
 }
 
-# --- KONFIGURACJA KOLORÓW (MID-DARK / SLATE) ---
+# --- KONFIGURACJA KOLORÓW (MID-DARK / SLATE / GRAPHITE) ---
+# To jest ten Twój "szaro-niebieski/grafitowy 50%+"
 COLORS_LIGHT = {
-    "bg_dark": "#3b4252",
-    "bg_panel": "#434c5e",
-    "bg_selected": "#4c566a",
+    "bg_dark": "#3b4252",  # Baza: Grafitowy łupek (Nordic Grey)
+    "bg_panel": "#434c5e",  # Panel: Nieco jaśniejszy grafit
+    "bg_selected": "#4c566a",  # Zaznaczenie: Jasny grafit
 
-    "text": "#f8f8f2",
+    "text": "#eceff4",  # Złamana biel (nie razi w oczy na graficie)
 
-    "accent": "#bd93f9",
-    "highlight": "#ffb86c",
-    "secondary": "#5e81ac",
+    # TWOJE KOLORY:
+    "accent": "#bd93f9",  # Fioletowy (taki sam jak w głównym)
+    "highlight": "#ffb86c",  # Pomarańczowy (zamiast różu)
+    "secondary": "#5e81ac",  # Stonowany niebieski (do ramek)
 
-    "button_text": "#282a36",
-    "icon_color": "#d8dee9",
-    "icon_active": "#bd93f9",
-    "bg_table": "#434c5e",
-    "gridline": "#4c566a"
+    "button_text": "#2e3440",  # Ciemny tekst na jasnych przyciskach
+    "icon_color": "#d8dee9",  # Jasnoszare ikony
+    "icon_active": "#bd93f9",  # Fioletowe aktywne
+    "bg_table": "#434c5e",  # Tło tabeli
+    "gridline": "#4c566a",  # Linie siatki
+
+    "success": "#a3be8c",  # Stonowany zielony
+    "error": "#bf616a"  # Stonowany czerwony
 }
 
-# ARKUSZ STYLÓW
-# Uwaga: W f-stringu podwójne klamry {{ }} oznaczają styl CSS,
-# a pojedyncze { } wstawiają zmienną z Pythona.
-
+# --- ARKUSZ STYLÓW 1 (Dla COLORS - Dracula) ---
 STYLESHEET = f"""
-/* GŁÓWNE USTAWIENIA */
 QMainWindow {{
     background-color: {COLORS['bg_dark']};
 }}
@@ -52,12 +56,9 @@ QWidget {{
     font-size: 13px;
 }}
 
-/* PIONOWE ZAKŁADKI (Lewy pasek) */
-QTabWidget::pane {{
-    border: none;
-}}
+/* ZAKŁADKI PIONOWE */
+QTabWidget::pane {{ border: none; }}
 
-/* Zakładki, gdy są ustawione po lewej stronie */
 QTabBar::tab:left {{
     background: {COLORS['bg_panel']};
     color: {COLORS['accent']};
@@ -67,7 +68,7 @@ QTabBar::tab:left {{
     border-bottom-left-radius: 4px;
     min-width: 80px;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 14px;
 }}
 
 QTabBar::tab:left:selected {{
@@ -76,7 +77,7 @@ QTabBar::tab:left:selected {{
     border-right: 3px solid {COLORS['highlight']};
 }}
 
-/* POZIOME ZAKŁADKI (Górny pasek) */
+/* ZAKŁADKI POZIOME */
 QTabBar::tab:top {{
     background: {COLORS['bg_selected']};
     color: {COLORS['text']};
@@ -91,7 +92,27 @@ QTabBar::tab:top:selected {{
     font-weight: bold;
 }}
 
-/* ELEMENTY WEWNĘTRZNE */
+/* ELEMENTY FORMULARZY */
+QTextEdit, QPlainTextEdit, QLineEdit {{
+    background-color: {COLORS['bg_panel']}; 
+    color: {COLORS['text']};
+    border: 1px solid {COLORS['bg_selected']};
+    border-radius: 3px;
+    padding: 4px;
+}}
+
+/* TABELE (Podstawowe style dla Dracula) */
+QHeaderView::section {{
+    background-color: {COLORS['bg_panel']};
+    color: {COLORS['text']};
+    padding: 4px;
+    border: 1px solid {COLORS['bg_selected']};
+}}
+
+QTableWidget {{
+    gridline-color: {COLORS['gridline']};
+}}
+
 QGroupBox {{
     border: 1px solid {COLORS['secondary']};
     border-radius: 5px;
@@ -105,19 +126,11 @@ QGroupBox::title {{
     padding: 0 5px;
 }}
 
-QTextEdit, QPlainTextEdit, QLineEdit {{
-    background-color: {COLORS['bg_panel']}; 
-    color: {COLORS['text']};
-    border: 1px solid {COLORS['bg_selected']};
-    border-radius: 3px;
-    padding: 4px;
-}}
-
 QPushButton {{
     background-color: {COLORS['accent']};
     color: {COLORS['button_text']};
     border-radius: 3px;
-    padding: 5px;
+    padding: 6px;
     font-weight: bold;
 }}
 
@@ -125,13 +138,10 @@ QPushButton:hover {{
     background-color: {COLORS['highlight']};
 }}
 
-/* Wyrównanie Checkboxa w formularzach */
-QCheckBox {{
-    spacing: 8px;
-    margin-bottom: 2px;
-}}
+QCheckBox {{ spacing: 8px; }}
 """
 
+# --- ARKUSZ DLA PRZYCISKÓW MEDIALNYCH ---
 MEDIA_BUTTON_SHEET = f"""
 QPushButton {{
     background-color: transparent;
@@ -147,7 +157,7 @@ QPushButton:pressed {{
 }}
 """
 
-# ARKUSZ STYLÓW (LIGHT)
+# --- ARKUSZ STYLÓW 2 (Dla COLORS_LIGHT - Slate/Graphite) ---
 STYLESHEET_LIGHT = f"""
 /* --- GŁÓWNE --- */
 QMainWindow {{
@@ -176,7 +186,7 @@ QTabBar::tab:left {{
 
 QTabBar::tab:left:selected {{
     background: {COLORS_LIGHT['bg_selected']};
-    color: {COLORS_LIGHT['accent']};
+    color: {COLORS_LIGHT['accent']}; /* Fioletowy */
     border-right: 3px solid {COLORS_LIGHT['accent']};
 }}
 
@@ -192,7 +202,7 @@ QTabBar::tab:top {{
 
 QTabBar::tab:top:selected {{
     background: {COLORS_LIGHT['bg_selected']};
-    color: {COLORS_LIGHT['highlight']};
+    color: {COLORS_LIGHT['highlight']}; /* Pomarańczowy */
     font-weight: bold;
     border-bottom: 2px solid {COLORS_LIGHT['highlight']};
 }}
@@ -213,7 +223,7 @@ QGroupBox::title {{
     color: {COLORS_LIGHT['secondary']};
 }}
 
-/* --- POLA TEKSTOWE (Inputy) --- */
+/* --- POLA TEKSTOWE --- */
 QTextEdit, QPlainTextEdit, QLineEdit {{
     background-color: {COLORS_LIGHT['bg_panel']}; 
     color: {COLORS_LIGHT['text']};
@@ -222,43 +232,58 @@ QTextEdit, QPlainTextEdit, QLineEdit {{
     padding: 4px;
 }}
 
-/* Aktywne pole tekstowe (Focus) */
 QLineEdit:focus, QTextEdit:focus {{
     border: 1px solid {COLORS_LIGHT['accent']};
 }}
 
-/* --- TABELE (To naprawia nagłówki) --- */
+/* --- TABELE (Wersja XL - Zwiększona czytelność) --- */
 QTableWidget, QTableView {{
-    background-color: {COLORS_LIGHT['bg_panel']};
+    background-color: {COLORS_LIGHT['bg_table']};
     gridline-color: {COLORS_LIGHT['gridline']};
     color: {COLORS_LIGHT['text']};
-    border: 1px solid {COLORS_LIGHT['bg_selected']};
+    border: none;
+
+    /* GŁÓWNA CZCIONKA TABELI */
+    font-size: 16px;
+    font-weight: 600;
 }}
 
-/* Nagłówki kolumn i wierszy */
-QHeaderView::section {{
-    background-color: {COLORS_LIGHT['bg_dark']}; /* Ciemniejsze tło nagłówka */
-    color: {COLORS_LIGHT['text']};              /* Jasny tekst */
-    padding: 5px;
-    border: 1px solid {COLORS_LIGHT['bg_selected']};
+/* Odstępy wewnątrz komórek */
+QTableWidget::item {{
+    padding: 10px;
+}}
+
+/* Nagłówki po lewej (Wiersze) */
+QHeaderView::section:vertical {{
+    background-color: {COLORS_LIGHT['bg_selected']};
+    color: {COLORS_LIGHT['text']};
+    padding: 8px 15px;
+    border: 1px solid {COLORS_LIGHT['gridline']};
     font-weight: bold;
+    font-size: 14px;
 }}
 
-/* Pusty róg tabeli (góra-lewo) */
+/* Nagłówki na górze (Kroki) */
+QHeaderView::section:horizontal {{
+    background-color: {COLORS_LIGHT['bg_panel']};
+    color: {COLORS_LIGHT['text']};
+    border: 1px solid {COLORS_LIGHT['gridline']};
+    font-size: 12px;
+}}
+
 QTableCornerButton::section {{
     background-color: {COLORS_LIGHT['bg_dark']};
     border: 1px solid {COLORS_LIGHT['bg_selected']};
 }}
 
-/* Zaznaczenie w tabeli */
 QTableWidget::item:selected {{
-    background-color: {COLORS_LIGHT['bg_selected']};
-    color: {COLORS_LIGHT['highlight']};
+    background-color: {COLORS_LIGHT['highlight']}; /* Pomarańczowy */
+    color: {COLORS_LIGHT['bg_dark']}; /* Ciemny tekst na jasnym tle */
 }}
 
 /* --- PRZYCISKI --- */
 QPushButton {{
-    background-color: {COLORS_LIGHT['accent']};
+    background-color: {COLORS_LIGHT['accent']}; /* Fioletowy */
     color: {COLORS_LIGHT['button_text']};
     border-radius: 3px;
     padding: 6px;
@@ -266,7 +291,7 @@ QPushButton {{
 }}
 
 QPushButton:hover {{
-    background-color: {COLORS_LIGHT['highlight']};
+    background-color: {COLORS_LIGHT['highlight']}; /* Pomarańczowy */
     color: {COLORS_LIGHT['button_text']};
 }}
 
@@ -295,6 +320,6 @@ QCheckBox::indicator {{
 QCheckBox::indicator:checked {{
     background: {COLORS_LIGHT['accent']};
     border: 1px solid {COLORS_LIGHT['accent']};
-    image: none; /* Domyślny systemowy ptaszek może być czarny, więc to czyści */
+    image: none;
 }}
 """
