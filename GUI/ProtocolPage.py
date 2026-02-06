@@ -8,6 +8,8 @@ from SimWorker import SimWorker
 from GUI.AnalysisView import AnalysisView
 from SimulationView import SimulationView
 from TableView import TableView
+from DataManagers.TableManager import TableManager
+from Misc.SmartList import SmartList
 
 from QKD_Algorithms.Common.SimManager import SimManager
 
@@ -23,6 +25,16 @@ class ProtocolPage(QWidget):
         super().__init__(parent)
         self.protocol_name = protocol_name
         # sim_manager.logger.enable_logger(False)
+        self.tableManager = TableManager()
+        self.sim_manager = sim_manager
+
+        # --- Observable Lists ---
+        # ALICE
+        self.sim_manager.alice.bits = SmartList(self.on_list_update, "Alice", "bits")
+        self.sim_manager.alice.bases = SmartList(self.on_list_update, "Alice", "bases")
+        # BOB
+        self.sim_manager.bob.bits = SmartList(self.on_list_update, "Bob", "bits")
+        self.sim_manager.bob.bases = SmartList(self.on_list_update, "Bob", "bases")
 
         # --- KONFIGURACJA WĄTKU ---
         self.sim_thread = QThread()
@@ -60,6 +72,7 @@ class ProtocolPage(QWidget):
         self.sim_view.sig_speed.connect(self.worker.set_speed)
 
         self.worker.sig_log_update.connect(self.sim_view.update_logs)
+        self.worker.sig_log_update.connect(self.update_table_view_by_step)
         self.worker.sig_lock_settings.connect(self.sim_view.sim_lock_settings)
 
         self.sim_view.sig_forward_settings.connect(sim_manager.update_setting)
@@ -72,3 +85,44 @@ class ProtocolPage(QWidget):
         self.sim_thread.quit()
         self.sim_thread.wait()
         event.accept()
+
+    def on_list_update(self, owner, value):
+        """
+        Ta funkcja jest wywoływana automatycznie, gdy SimManager zrobi .append().
+        Działa jak "most" między SimManagerem a TableManagerem.
+        """
+        if owner == "Alice":
+            try:
+                bit = self.sim_manager.alice.bits[-1]
+                base = self.sim_manager.alice.bases[-1]
+
+                self.tableManager.log_alice(bit, base)
+            except IndexError:
+                return  # Czekamy aż druga lista (np. bases) też dostanie append w następnej linijce kodu
+
+        elif owner == "Bob":
+            try:
+                bit = self.sim_manager.bob.bits[-1]
+                base = self.sim_manager.bob.bases[-1]
+                self.tableManager.log_bob(bit, base)
+            except IndexError:
+                return
+
+        elif owner == "Eve":
+            pass
+
+        # Update View
+        df = self.tableManager.get_dataframe()
+        self.tab_view.update_table(df)
+
+    def update_table_view_by_step(self, step_idx, logs, clear_first):
+        """
+        Pobiera pełne dane, przycina je do aktualnego kroku i wysyła do tabeli.
+        """
+        full_df = self.tableManager.get_dataframe()
+
+        if full_df.empty:
+            return
+
+        sliced_df = full_df.iloc[:step_idx + 1]
+        self.tab_view.update_table(sliced_df)
