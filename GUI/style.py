@@ -1,4 +1,4 @@
-# --- KONFIGURACJA KOLORÓW (DOMYŚLNY - DRACULA) ---
+# --- KONFIGURACJA KOLORÓW ---
 COLORS = {
     "bg_dark": "#1e1e2e",  # Główne tło (Bardzo ciemny fiolet/czerń)
     "bg_panel": "#282a36",  # Tło paneli

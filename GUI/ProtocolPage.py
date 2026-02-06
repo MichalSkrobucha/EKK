@@ -1,9 +1,9 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from PyQt6.QtCore import QThread, pyqtSignal
 
 # Importuj swoje widoki
 from GUI.StatisticsView import StatisticsView
-from SimWorker import SimWorker
+from GUI.Workers.SimWorker import SimWorker
 from GUI.AnalysisView import AnalysisView
 from SimulationView import SimulationView
 from TableView import TableView
@@ -31,7 +31,7 @@ class ProtocolPage(QWidget):
             self.sim_manager.bob.bits = SmartList(self.on_list_update, "Bob", "bits")
             self.sim_manager.bob.bases = SmartList(self.on_list_update, "Bob", "bases")
         elif protocol_name == "SARG04":
-            self.sim_manager.alice.sendBases = SmartList(self.on_list_update, "Alice", "sendBases")
+            self.sim_manager.alice.sendBases = SmartList(self.on_list_update, "Alice", "bases")
             self.sim_manager.alice.bits = SmartList(self.on_list_update, "Alice", "bits")
             self.sim_manager.bob.bits = SmartList(self.on_list_update, "Bob", "bits")
             self.sim_manager.bob.bases = SmartList(self.on_list_update, "Bob", "bases")
@@ -49,9 +49,11 @@ class ProtocolPage(QWidget):
         self.horiz_tabs = QTabWidget()
         self.horiz_tabs.setTabPosition(QTabWidget.TabPosition.North)
 
+        sim_manager_class = type(sim_manager)
+
         self.sim_view = SimulationView(protocol_name, parent=self)
         self.tab_view = TableView(protocol_name, parent=self)
-        self.analysis_view = AnalysisView(parent=self)
+        self.analysis_view = AnalysisView(protocol_name, sim_manager_class, parent=self)
         self.statistics_view = StatisticsView(parent=self)
 
         self.horiz_tabs.addTab(self.sim_view, "SIMULATION")
@@ -91,30 +93,23 @@ class ProtocolPage(QWidget):
     def on_list_update(self, owner, data_type, value):
         if owner == "Alice":
             if data_type == "bits":
-                bit = self.sim_manager.alice.bits[-1]
-                self.tableManager.log_alice_bit(bit)
+                self.tableManager.log_alice_bit(value)
             elif data_type == "bases":
-                base = self.sim_manager.alice.bases[-1]
-                self.tableManager.log_alice_base(base)
-            elif data_type == "sendBases":
-                base = self.sim_manager.alice.sendBases[-1]
-                self.tableManager.log_alice_base(base)
+                self.tableManager.log_alice_base(value)
             elif data_type == "results":
-                base = self.sim_manager.alice.results[-1]["base"]
-                bit = self.sim_manager.alice.results[-1]["bit"]
+                base = value["base"]
+                bit = value["bit"]
                 self.tableManager.log_alice_base(base, True)
                 self.tableManager.log_alice_bit(bit)
 
         elif owner == "Bob":
             if data_type == "bits":
-                bit = self.sim_manager.bob.bits[-1]
-                self.tableManager.log_bob_bit(bit)
+                self.tableManager.log_bob_bit(value)
             elif data_type == "bases":
-                base = self.sim_manager.bob.bases[-1]
-                self.tableManager.log_bob_base(base)
+                self.tableManager.log_bob_base(value)
             elif data_type == "results":
-                base = self.sim_manager.bob.results[-1]["base"]
-                bit = self.sim_manager.bob.results[-1]["bit"]
+                base = value["base"]
+                bit = value["bit"]
                 self.tableManager.log_bob_base(base, True)
                 self.tableManager.log_bob_bit(bit)
         elif owner == "Eve":

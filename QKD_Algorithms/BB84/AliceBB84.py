@@ -40,5 +40,3 @@ class AliceBB84(Alice):
         self.keyBits = list(self.sievedBits)
         self.logger.log(
             f"Alice sieved her measurments (based on her and Bob's bases) and got {len(self.sievedBits)} bits: {self.sievedBits}")
-
-

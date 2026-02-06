@@ -1,13 +1,5 @@
-import sys
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
-from PyQt6.QtCore import QThread
-from PyQt6.QtCore import Qt, pyqtSignal
-
-from GUI.StatisticsView import StatisticsView
-from SimWorker import SimWorker
-from GUI.AnalysisView import AnalysisView
-from SimulationView import SimulationView
-from TableView import TableView
+from PyQt6.QtWidgets import QWidget
+from PyQt6.QtCore import pyqtSignal
 
 
 class MACPage(QWidget):

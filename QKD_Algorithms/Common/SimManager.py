@@ -128,7 +128,6 @@ class SimManager(ABC):
 
     def _sim_transmition_step(self):
         self.alice.send_key()
-
         if self.ifEve:
             self.eve.eavesdrop()
 

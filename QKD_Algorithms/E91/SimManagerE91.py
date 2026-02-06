@@ -16,7 +16,7 @@ class SimManagerE91(SimManager):
 
     BASES_ALICE = list(cfg.e91.alice_bases.keys())
     BASES_BOB = list(cfg.e91.bob_bases.keys())
-    BASES_EVE = list(cfg.e91.eve_bases.keys())
+    BASES_EVE = list(cfg.e91.eve_bases.keys()) # TODO?? Add eve bases text field
     BASES_DICT = cfg.e91.bases_dict
 
     p: float = 1.0
