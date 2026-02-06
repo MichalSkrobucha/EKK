@@ -4,9 +4,13 @@ from Logger import SimLogger
 
 from random import choice
 
+from typing import override
+from Common.Eve import Eve
 
-class EveE91:
+
+class EveE91(Eve):
     def __init__(self, avaliable_bases, bases_dict, channel: Channel, logger: SimLogger):
+        super().__init__(channel, logger)
         self.channel = channel
         self.channel.name = "channel_E"
         self.avaliable_bases = avaliable_bases
@@ -19,6 +23,15 @@ class EveE91:
         self.measures: list[tuple[int, int]] = []
 
         self.key = []
+
+    @override
+    def clearLists(self) -> None:
+        super().clearLists()
+        self.bases_A.clear()
+        self.bases_B.clear()
+        self.photons.clear()
+        self.measures.clear()
+        self.key.clear()
 
     def receive(self) -> None:
         if len(self.channel.container) > 0:
@@ -49,3 +62,7 @@ class EveE91:
             if a == b:
                 bit = p.measure(self.bases_dict[a])
                 self.key.append(bit)
+
+    def eavesdrop(self) -> None:
+        # implementing abstract method
+        pass

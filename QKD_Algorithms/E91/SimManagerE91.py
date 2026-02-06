@@ -17,9 +17,9 @@ class SimManagerE91(SimManager):
     BASES_EVE = list(cfg.e91.eve_bases.keys())
     BASES_DICT = cfg.e91.bases_dict
 
-    p: float = 0.95
+    p: float = 1.0
 
-    eveMode: int = -1
+    eveMode: int = 0
 
     # -1 - noEve,
     # 0 - eve measures after eavsdropping bases,
@@ -35,8 +35,13 @@ class SimManagerE91(SimManager):
         alice = E91Container.alice(self.BASES_ALICE, self.BASES_DICT)
         bob = E91Container.bob(self.BASES_BOB, self.BASES_DICT)
         eve = E91Container.eve(self.BASES_EVE, self.BASES_DICT)
-        self.source = Source(n=2 if self.eveMode < 0 else 3, p=self.p)
+        self.source = E91Container.source()
         logger = E91Container.logger()
+
+        self.ifEve = self.eveMode >= 0
+
+        self.source.n = 2 if self.eveMode < 0 else 3
+        self.source.p = self.p
 
         super().__init__(None, alice, bob, eve, logger, "E91")
 
@@ -190,6 +195,15 @@ class SimManagerE91(SimManager):
 
         self.alice.keyBits = raw_key_alice
         self.bob.keyBits = raw_key_bob
+
+        err: int = 0
+
+        for (a, b) in zip(raw_key_alice, raw_key_bob):
+            if a != b:
+                err += 1
+
+        self.qber = err / len(raw_key_alice)
+        print(f'QBER: {self.qber :.4f}')
 
         # Wzór na E: E = (N_same - N_diff) / (N_same + N_diff)
         def get_E(idx_a, idx_b):
