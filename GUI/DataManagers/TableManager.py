@@ -39,17 +39,32 @@ class TableManager:
         else:
             self.data[key].append(value)
 
-    def log_alice(self, bit, base):
-        base_symbol = "+x"[base]
-        self.append_data("Alice bits", bit)
+    def log_alice_base(self, base, if_e91=False):
+        if if_e91:
+            base_symbol = base
+        else:
+            base_symbol = base if base == -1 else "+x"[base]
+
         self.append_data("Alice bases", base_symbol)
         self._fix_length()
 
-    def log_bob(self, bit, base):
-        base_symbol = "+x"[base]
-        self.append_data("Bob bits", bit)
+    def log_alice_bit(self, bit):
+        self.append_data("Alice bits", bit)
+        self._fix_length()
+
+    def log_bob_base(self, base, if_e91=False):
+        if if_e91:
+            base_symbol = base
+        else:
+            base_symbol = base if base == -1 else "+x"[base]
+
         self.append_data("Bob bases", base_symbol)
-        self._try_calculate_logic(self.get_data_len("Bob bases")-1)
+        self._try_calculate_logic(self.get_data_len("Bob bases") - 1)
+        self._fix_length()
+
+    def log_bob_bit(self, bit):
+        self.append_data("Bob bits", bit)
+        self._try_calculate_logic(self.get_data_len("Bob bases") - 1)
         self._fix_length()
 
     def _try_calculate_logic(self, step: int):
@@ -61,7 +76,7 @@ class TableManager:
         bob_base = self.data["Bob bases"][step]
         bob_bit = self.data["Bob bits"][step]
 
-        if alice_base is not None and bob_base is not None:
+        if alice_base is not None and bob_base is not None and bob_bit is not None:
             match = (alice_base == bob_base)
             self.data["Bob hits"][step] = '✔️' if match else '❌'
             if match:
@@ -71,4 +86,6 @@ class TableManager:
 
     def get_dataframe(self) -> pd.DataFrame:
         """Zwraca gotową tabelę"""
+        self._fix_length()
         return pd.DataFrame(self.data)
+

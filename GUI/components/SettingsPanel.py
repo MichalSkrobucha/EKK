@@ -173,8 +173,9 @@ class SettingsPanel(QWidget):
         self.input_alice_bases = QLineEdit(", ".join(map(str, cfg.e91.alice_bases.values())))
         self.input_alice_bases.setPlaceholderText("e.g. 0, 22.5, 45")
         self.form_alice.addRow("Bases (Angles):", self.input_alice_bases)
+
         self.input_alice_bases.editingFinished.connect(
-            lambda val: self.sig_setting_changed.emit("alice_bases", val)
+            lambda: self.sig_setting_changed.emit("alice_bases", self.input_alice_bases.text())
         )
 
         # BOB
@@ -185,8 +186,9 @@ class SettingsPanel(QWidget):
 
         self.input_bob_bases = QLineEdit(", ".join(map(str, cfg.e91.bob_bases.values())))
         self.form_bob.addRow("Bases (Angles):", self.input_bob_bases)
+
         self.input_bob_bases.editingFinished.connect(
-            lambda val: self.sig_setting_changed.emit("bob_bases", val)
+            lambda: self.sig_setting_changed.emit("bob_bases", self.input_bob_bases.text())
         )
         #
         # EVE TODO?

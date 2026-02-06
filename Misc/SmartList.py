@@ -11,7 +11,7 @@ class SmartList(list):
         super().append(item)
 
         if self.callback:
-            self.callback(self.owner_name, item)
+            self.callback(self.owner_name, self.data_type, item)
 
     def clear(self):
         super().clear()

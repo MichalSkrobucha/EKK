@@ -7,8 +7,9 @@ from style import COLORS, STYLESHEET
 
 
 class TableView(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, protocol_name, parent=None):
         super().__init__(parent)
+        self.protocol_name = protocol_name
 
         self.row_keys = [
             "Alice bits",
@@ -46,7 +47,8 @@ class TableView(QWidget):
         self.result_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
         v_header = self.result_table.verticalHeader()
-        v_header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        # v_header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        v_header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         v_header.setDefaultSectionSize(50)
 
         v_header.setSectionsClickable(True)
