@@ -5,7 +5,6 @@ class HashMAC:
     # basically only classes that needed nextprime and mod_inv are those that already need hash
 
     @staticmethod
-    @staticmethod
     def next_prime(M: int) -> int:
         return nxtpr(M)
 

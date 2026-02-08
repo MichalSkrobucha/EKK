@@ -4,6 +4,8 @@ from MAC.EveMAC import EveMAC as eve
 from MAC.HashMAC import HashMAC as Hash
 from random import choice, shuffle
 
+# ALL LOGIC MOVED TO SIMMANAGER_MAC
+
 
 class ChannelMAC:
     m_exp: int = 4
@@ -55,16 +57,25 @@ class ChannelMAC:
             print(f'Eve eavesdropps on (message, tag) pair\n')
             self.eve.eavesdrop(mt)
 
+        self.eve.narrow_possible_hashes()
+        print(len(self.eve.possible_hashes), self.eve.possible_hashes)
+
         alice_unused_messages: list[int] = self.alice.possible_messages
         shuffle(alice_unused_messages)
         messages_to_forge: list[int] = alice_unused_messages[:min(self.eve_forgeries, len(alice_unused_messages))]
 
-        self.eve.narrow_possible_hashes()
-        print(len(self.eve.possible_hashes), self.eve.possible_hashes)
-
-        # co gdy len == 1 (Ewa złamała hash) - nie trzeba dalszej analizy
+        print(f'Eve is given messages to forge tags:\n{messages_to_forge}')
 
         fakes: list[tuple[int, int]] = self.eve.forge_mtags(messages_to_forge)
+        print(f'Eve attempted tag forgery')
+
+        print('Message | Correct Tag | Eve\'s tag | Comparison')
+
+        succ: int = 0
 
         for (m, t) in fakes:
             print(m, t, self.alice.h(m), t == self.alice.h(m))
+            if t == self.alice.h(m):
+                succ += 1
+
+        print(f'\nEve succeded in {100 * succ / len(fakes) :.2f}% of cases')

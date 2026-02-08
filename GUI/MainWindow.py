@@ -1,10 +1,11 @@
 import sys
 from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QTabWidget
 
-from GUI.MACPage import MACPage
+# from GUI.MACPage import MACPage
 from QKD_Algorithms.BB84.SimManagerBB84 import SimManagerBB84
 from QKD_Algorithms.E91.SimManagerE91 import SimManagerE91
 from QKD_Algorithms.SARG04.SimManagerSARG import SimManagerSARG
+from QKD_Algorithms.MAC.SimManagerMAC import SimManagerMAC
 from ProtocolPage import ProtocolPage
 from style import STYLESHEET, STYLESHEET_LIGHT
 
@@ -38,7 +39,7 @@ class MainWindow(QMainWindow):
         self.vertical_tabs.addTab(self.create_protocol_page("BB84"), "BB84")
         self.vertical_tabs.addTab(self.create_protocol_page("SARG04"), "SARG04")
         self.vertical_tabs.addTab(self.create_protocol_page("E91"), "E91")
-        # self.vertical_tabs.addTab(MACPage(), "MAC")
+        self.vertical_tabs.addTab(self.create_protocol_page("MAC"), "MAC")
 
         main_layout.addWidget(self.vertical_tabs)
 
@@ -52,6 +53,8 @@ class MainWindow(QMainWindow):
             sim_manager = SimManagerE91()
         elif protocol_name == "SARG04":
             sim_manager = SimManagerSARG()
+        elif protocol_name == "MAC":
+            sim_manager = SimManagerMAC()
 
         if sim_manager:
             page = ProtocolPage(protocol_name, sim_manager)

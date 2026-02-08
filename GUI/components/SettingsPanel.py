@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QGroupBox,
                              QSpinBox, QDoubleSpinBox, QCheckBox, QComboBox,
-                             QFormLayout, QLineEdit)
+                             QFormLayout, QLineEdit, QSpinBox, QPushButton)
 from PyQt6.QtCore import Qt, pyqtSignal
 from QKD_Algorithms.Common.config import cfg
 
@@ -16,7 +16,8 @@ class SettingsPanel(QWidget):
         self.layout.setSpacing(15)
 
         # Budowanie sekcji wspólnych (Sim)
-        self.add_sim_section()
+        if self.protocol_name != "MAC":
+            self.add_sim_section()
 
         # Różne ustawienia dla różnych protokołów
         if self.protocol_name in ["BB84", "SARG04"]:
@@ -27,6 +28,9 @@ class SettingsPanel(QWidget):
 
         elif self.protocol_name == "E91":
             self.add_e91_controls()
+
+        elif self.protocol_name == "MAC":
+            self.add_mac_controls()
 
         self.layout.addStretch()
 
@@ -228,6 +232,45 @@ class SettingsPanel(QWidget):
             lambda val: self.sig_setting_changed.emit("eve_mode", val)
         )
         self.form_eve.addRow("Eve Mode:", self.check_eve)
+
+    def add_mac_controls(self):
+        self.hash_params = self.create_group("Hash Parameters")
+        self.m_exp = QDoubleSpinBox()
+        self.m_exp.setRange(1, 8)
+        self.m_exp.setValue(4)
+        self.m_exp.setSingleStep(1)
+
+        self.hash_params.addRow("Bits of message space: ", self.m_exp)
+        self.m_exp.valueChanged.connect(
+            lambda val: self.sig_setting_changed.emit("m_exp", val))
+
+        self.t_exp = QDoubleSpinBox()
+        self.t_exp.setRange(1, 8)
+        self.t_exp.setValue(2)
+        self.t_exp.setSingleStep(1)
+
+        self.hash_params.addRow("Bits of tag space", self.t_exp)
+        self.t_exp.valueChanged.connect(
+            lambda val: self.sig_setting_changed.emit("t_exp", val))
+
+        self.mteve_params = self.create_group("Eve parameters")
+        self.given = QDoubleSpinBox()
+        self.given.setRange(0, 100)
+        self.given.setValue(4)
+        self.given.setSingleStep(1)
+
+        self.mteve_params.addRow("Exchanged messages: ", self.given)
+        self.given.valueChanged.connect(
+            lambda val: self.sig_setting_changed.emit("mts_given", val))
+
+        self.to_forge = QDoubleSpinBox()
+        self.to_forge.setRange(0, 100)
+        self.to_forge.setValue(4)
+        self.to_forge.setSingleStep(1)
+
+        self.mteve_params.addRow("Tags to forge: ", self.to_forge)
+        self.to_forge.valueChanged.connect(
+            lambda val: self.sig_setting_changed.emit("to_forge", val))
 
     @staticmethod
     def on_bases_change(self, value, sim_variable):
