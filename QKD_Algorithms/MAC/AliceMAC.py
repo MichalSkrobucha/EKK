@@ -1,4 +1,4 @@
-from .HashMAC import HashMAC as Hash
+from MAC.HashMAC import HashMAC as Hash
 from random import randint
 
 

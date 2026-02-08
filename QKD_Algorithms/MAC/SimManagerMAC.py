@@ -1,26 +1,22 @@
-from Common.SimManager import SimManager
-from .ChannelMAC import ChannelMAC as channel
-from .AnalysisMAC import AnalysisMAC as analysis
+from MAC.ChannelMAC import ChannelMAC as channel
 
-class SimManagerMAC(SimManager):
-    pass
 
-# E91
+class SimManagerMAC():
+    m_exp = 4
+    t_exp = 2
+    given_mts = 2
+    eve_forgeries = 2
 
-#     def simLoop(self):
-#         """
-#         Simulates QKD (du-uh)
-#         """
-#         self._initial_print()
-#         self.is_running = True
-#         while self.is_running:
-#             self.sim_next_step()
-#         self.is_running = False
+    def __init__(self):
+        self.c = channel(self.m_exp, self.t_exp, given_mts=self.given_mts, eve_forgeries=self.eve_forgeries)
+
+    def run_sim(self):
+        self.c.run()
+
 
 def main():
-    # channel().run()
-    a = analysis()
-    a.getPossibleHashesCount(8, 8)
+    s = SimManagerMAC()
+    s.run_sim()
 
 
 if __name__ == '__main__':

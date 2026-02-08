@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
         self.vertical_tabs.addTab(self.create_protocol_page("BB84"), "BB84")
         self.vertical_tabs.addTab(self.create_protocol_page("SARG04"), "SARG04")
         self.vertical_tabs.addTab(self.create_protocol_page("E91"), "E91")
-        self.vertical_tabs.addTab(MACPage(), "MAC")
+        # self.vertical_tabs.addTab(MACPage(), "MAC")
 
         main_layout.addWidget(self.vertical_tabs)
 

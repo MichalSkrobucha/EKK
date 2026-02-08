@@ -96,3 +96,6 @@ class E91Container(containers.DeclarativeContainer):
         Source
         # ,photon_factory=photon_factory
     )
+
+class MACContainer(containers.DeclarativeContainer):
+    logger = providers.Singleton(SimLogger)

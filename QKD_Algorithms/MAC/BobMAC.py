@@ -1,7 +1,6 @@
-from .HashMAC import HashMAC as Hash
+from MAC.HashMAC import HashMAC as Hash
 
-
-class BobMAC:
+class BobMAC():
     def __init__(self, h: hash):
         self.h: hash = h
 

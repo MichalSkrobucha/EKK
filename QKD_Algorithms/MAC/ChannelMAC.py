@@ -1,7 +1,7 @@
-from .AliceMAC import AliceMAC as alice
-from .BobMAC import BobMAC as bob
-from .EveMAC import EveMAC as eve
-from .HashMAC import HashMAC as Hash
+from MAC.AliceMAC import AliceMAC as alice
+from MAC.BobMAC import BobMAC as bob
+from MAC.EveMAC import EveMAC as eve
+from MAC.HashMAC import HashMAC as Hash
 from random import choice, shuffle
 
 
@@ -28,7 +28,7 @@ class ChannelMAC:
         self.p: int = Hash.next_prime(self.M)
         self.possible_messages: list[int] = [m for m in range(self.M)]
 
-        possible_hashes: list[tuple[int, int]] = self.find_possible_hashes()
+        possible_hashes: list[tuple[int, int]] = Hash.find_eq_prob_hashes(self.M, self.T)
         self.possible_hashes = possible_hashes
         qr: tuple[int, int] = choice(possible_hashes)
 
@@ -36,49 +36,24 @@ class ChannelMAC:
 
         self.alice: alice = alice(h, list(self.possible_messages))
         self.bob: bob = bob(h)
-        # print(f'Alice and Bob have secret hash of (q,r): {qr[0], qr[1]}')
-        # print(f'In total there are {len(possible_hashes)} possible hashes\n')
+        print(f'Alice and Bob have secret hash of (q,r): {qr[0], qr[1]}')
+        print(f'In total there are {len(possible_hashes)} possible hashes\n')
 
         self.eve: eve = eve(self.M, self.T, self.p, possible_hashes)
-
-    def find_possible_hashes(self) -> list[tuple[int, int]]:
-        eq_prob: int = self.M // self.T
-
-        possible_hashes: list[tuple[int, int]] = []
-
-        h: hash = Hash(self.M, self.T, 0, 0, self.p)
-
-        for q in range(1, self.p):
-            for r in range(self.p):
-                h.q = q
-                h.r = r
-
-                t_ctr: dict[int, int] = {i: 0 for i in range(self.T)}
-                diff: int = 0
-
-                for m in self.possible_messages:
-                    t_ctr[h(m)] += 1
-
-                for v in t_ctr.values():
-                    diff += abs(v - eq_prob)
-
-                if diff <= self.eq_prob_tolerance:
-                    possible_hashes.append((q, r))
-
-        return possible_hashes
 
     def run(self):
         for _ in range(self.given_mts):
             mt: tuple[int, int] = self.alice.send_message()
-            self.eve.eavesdrop(mt)
 
-            # print(f'Alice sends message to Bob: {mt[0]} with tag {mt[1]}')
-            # if self.bob.recieve_message(mt):
-            #     print(f'Bob positively verifies message')
-            # else:
-            #     print(f'Bob negatively verifies message - End of transmission')
-            #     return
-            # print(f'Eve eavesdropps on (message, tag) pair\n')
+            print(f'Alice sends message to Bob: {mt[0]} with tag {mt[1]}')
+            if self.bob.recieve_message(mt):
+                print(f'Bob positively verifies message')
+            else:
+                print(f'Bob negatively verifies message - End of transmission')
+                return
+
+            print(f'Eve eavesdropps on (message, tag) pair\n')
+            self.eve.eavesdrop(mt)
 
         alice_unused_messages: list[int] = self.alice.possible_messages
         shuffle(alice_unused_messages)
