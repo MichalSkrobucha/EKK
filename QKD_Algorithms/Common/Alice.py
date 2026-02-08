@@ -16,7 +16,7 @@ class Alice(ABC):
     mi: float
     message: list[Photon]
 
-    def __init__(self, mi: float, channel: Channel|ChannelE91, photon_factory, logger: SimLogger):
+    def __init__(self, mi: float, channel: Channel | ChannelE91, photon_factory, logger: SimLogger):
         """
         :param channel: Channel on which Alice and Bob are communicating
         :param mi: Average amount of photons in impulse
@@ -154,8 +154,11 @@ class Alice(ABC):
         self.logger.log(f"Alice is calculating QBER: {self.qber}")
 
     def prepareForErrorCorrection(self):
+        sievedBits = []
+
         if self.keyBits:
             sievedBits = list(self.keyBits)
+            self.keyBits.clear()
         else:
             sievedBits = list(self.sievedBits)
 

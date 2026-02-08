@@ -227,8 +227,8 @@ class SimManagerE91(SimManager):
 
         print("\n--- Test Nierówności Bella (CHSH) ---")
         print(f"E(A0, B1) = {E_A0_B1:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[1]}")
-        print(f"E(A0, B3) = {E_A0_B3:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[1]}")
-        print(f"E(A2, B1) = {E_A2_B1:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[3]}")
+        print(f"E(A0, B3) = {E_A0_B3:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[3]}")
+        print(f"E(A2, B1) = {E_A2_B1:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[1]}")
         print(f"E(A2, B3) = {E_A2_B3:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[3]}")
         print(f"Wartość parametru S = {S:.4f}")
 
@@ -245,11 +245,11 @@ class SimManagerE91(SimManager):
             theta_B = math.radians(angle_b_deg)
 
             delta = theta_A - theta_B
-            return -math.cos(2 * delta)
+            return math.cos(2 * delta)
 
         E_A0_B1 = float(get_theoretical_E(self.BASES_DICT[0], self.BASES_DICT[1]))
-        E_A0_B3 = float(get_theoretical_E(self.BASES_DICT[0], self.BASES_DICT[1]))
-        E_A2_B1 = float(get_theoretical_E(self.BASES_DICT[2], self.BASES_DICT[3]))
+        E_A0_B3 = float(get_theoretical_E(self.BASES_DICT[0], self.BASES_DICT[3]))
+        E_A2_B1 = float(get_theoretical_E(self.BASES_DICT[2], self.BASES_DICT[1]))
         E_A2_B3 = float(get_theoretical_E(self.BASES_DICT[2], self.BASES_DICT[3]))
 
         S_theoretical = abs(E_A0_B1 - E_A0_B3 + E_A2_B1 + E_A2_B3)
@@ -259,7 +259,7 @@ class SimManagerE91(SimManager):
         print(f"E(A2, B1) = {E_A2_B1:.4f}")
         print(f"E(A2, B3) = {E_A2_B3:.4f}")
 
-        print(f"Teoretyczne S = {S_theoretical:.5f}\n")
+        print(f"Teoretyczne S = {S_theoretical:.4f}\n")
 
         # def get_S_for_pair(base_idx_1, base_idx_2):
         #     val_A1_B1 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_1])
@@ -342,7 +342,7 @@ class SimManagerE91(SimManager):
                 self.bob.bases = value
 
         elif key == "eve_mode":
-            id = ["No Eve", "Measure after base exchange", "Eve measure before Alice",
+            id = ["No Eve", "Eve measures after base exchange", "Eve measures before Alice",
                   "Eve measures between Alice & Bob", "Eve measures after Bob"].index(value)
 
             self.eveMode = id - 1

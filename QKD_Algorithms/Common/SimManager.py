@@ -138,7 +138,6 @@ class SimManager(ABC):
         self.alice.getSampleIds(self.bob.sendSampleIds())
         # Sample exchange
         self.alice.recieveSamples(self.bob.sendSample())
-        self.alice.sendSample()
         self.bob.receiveSamples(self.alice.sendSample())
 
     def _sim_calculate_qber(self):

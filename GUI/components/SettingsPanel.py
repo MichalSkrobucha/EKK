@@ -222,8 +222,8 @@ class SettingsPanel(QWidget):
         self.form_eve = self.create_group("🕵️ Eve (Eavesdropper)")
         self.check_eve = QComboBox()
         self.check_eve.addItems(
-            ["No Eve", "Measure after base exchange", "Eve measure before Alice", "Eve measures between Alice & Bob",
-             "Eve measures after Bob"])
+            ["No Eve", "Eve measures after base exchange", "Eve measures before Alice",
+             "Eve measures between Alice & Bob", "Eve measures after Bob"])
         self.check_eve.currentTextChanged.connect(
             lambda val: self.sig_setting_changed.emit("eve_mode", val)
         )

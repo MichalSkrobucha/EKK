@@ -10,16 +10,16 @@ class SimulationConfig:
 
 @dataclass(frozen=True)
 class ChannelConfig:
-    length_km: float = 20.0
-    dumpening_per_km: float = 0.2
-    base_transform_per_km: float = 0.2
+    length_km: float = 10.0
+    dumpening_per_km: float = 0.1
+    base_transform_per_km: float = 0.1
 
 
 @dataclass(frozen=True)
 class BB84Config:
-    alice_mi: float = 0.1
-    bob_efficiency: float = 90.0
-    bob_error: float = 10.0
+    alice_mi: float = 0.5
+    bob_efficiency: float = 100.0
+    bob_error: float = 0.0
     eve_present: bool = False
 
 
