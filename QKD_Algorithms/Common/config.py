@@ -32,12 +32,18 @@ class E91Config:
     eve_bases = {1: 22.5, 2: 45.0}
 
 
+class MACConfig:
+    m_exp: int = 4
+    t_exp: int = 2
+
+
 @dataclass(frozen=True)
 class AppConfig:
     sim: SimulationConfig = SimulationConfig()
     channel: ChannelConfig = ChannelConfig()
     bb84: BB84Config = BB84Config()
     e91: E91Config = E91Config()
+    mac: MACConfig = MACConfig()
 
 
 cfg = AppConfig()
