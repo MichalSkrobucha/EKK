@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 class Bob(ABC):
 
-    def __init__(self, efficiency: float, error: float, channel: Channel|ChannelE91, logger: SimLogger) -> None:
+    def __init__(self, efficiency: float, error: float, channel: Channel | ChannelE91, logger: SimLogger) -> None:
         """
         :param channel: Channel on which Alice and Bob are communicating
         :param efficiency: How often detectors react to photons (properly)
@@ -45,6 +45,7 @@ class Bob(ABC):
 
         self.random_bytes: bytes = b''
         self.key: bytes = b''
+        self.start_key: bytes = b''
 
     def clearLists(self) -> None:
         """
@@ -98,10 +99,10 @@ class Bob(ABC):
                 measurments[base][bit] += binomialvariate(p=self.error)
 
         self.logger.log(f"Bob measured: \n"
-                   f"\t\t\t{measurments[0][0]} clicks in base 0 (computational) of value 0 (horizontal)\n"
-                   f"\t\t\t{measurments[0][1]} clicks in base 0 (computational) of value 1 (vertical)\n"
-                   f"\t\t\t{measurments[1][0]} clicks in base 1 (Hadamard) of value 0 (diagonal 45)\n"
-                   f"\t\t\t{measurments[1][1]} clicks in base 1 (Hadamard) of value 1 (diagonal -45)")
+                        f"\t\t\t{measurments[0][0]} clicks in base 0 (computational) of value 0 (horizontal)\n"
+                        f"\t\t\t{measurments[0][1]} clicks in base 0 (computational) of value 1 (vertical)\n"
+                        f"\t\t\t{measurments[1][0]} clicks in base 1 (Hadamard) of value 0 (diagonal 45)\n"
+                        f"\t\t\t{measurments[1][1]} clicks in base 1 (Hadamard) of value 1 (diagonal -45)")
         # Bob reades detectors output and interprets it
 
         clickCount: int = measurments[0][0] + measurments[0][1] + measurments[1][0] + measurments[1][1]
@@ -336,6 +337,9 @@ class Bob(ABC):
 
         self.keyBits = bits
 
+    def get_start_key(self, start_key: bytes):
+        self.start_key = start_key
+
     def get_random_bytes(self, r_bytes: bytes) -> None:
         self.random_bytes = r_bytes
 
@@ -345,5 +349,5 @@ class Bob(ABC):
         quad_vals: list[int] = [sum([2 ** (3 - i) * b for (i, b) in enumerate(q)]) for q in quads]
         quad_hex: list[str] = [hex(q)[2:] for q in quad_vals]
         hex_bytes: str = ''.join(quad_hex)
-        b: bytes = bytes.fromhex(hex_bytes) + self.random_bytes
+        b: bytes = self.start_key + bytes.fromhex(hex_bytes) + self.random_bytes
         self.key = sha256(b).digest()

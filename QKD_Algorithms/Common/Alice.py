@@ -52,6 +52,7 @@ class Alice(ABC):
         self.bytes_count: int = 16
         self.random_bytes: bytes = b''
         self.key: bytes = b''
+        self.start_key: bytes = b''
 
     def clearLists(self) -> None:
         """
@@ -229,6 +230,9 @@ class Alice(ABC):
 
         self.keyBits = bits
 
+    def get_start_key(self, start_key: bytes):
+        self.start_key = start_key
+
     def send_random_bytes(self) -> bytes:
         self.random_bytes = randbytes(self.bytes_count)
         return self.random_bytes
@@ -239,5 +243,5 @@ class Alice(ABC):
         quad_vals: list[int] = [sum([2 ** (3 - i) * b for (i, b) in enumerate(q)]) for q in quads]
         quad_hex: list[str] = [hex(q)[2:] for q in quad_vals]
         hex_bytes: str = ''.join(quad_hex)
-        b: bytes = bytes.fromhex(hex_bytes) + self.random_bytes
+        b: bytes = self.start_key + bytes.fromhex(hex_bytes) + self.random_bytes
         self.key = sha256(b).digest()

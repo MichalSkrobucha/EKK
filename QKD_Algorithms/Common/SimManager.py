@@ -9,6 +9,7 @@ from .Eve import Eve
 from Common.config import cfg
 
 from math import log2
+from random import randbytes
 
 
 class SimManager(ABC):
@@ -258,6 +259,11 @@ class SimManager(ABC):
 
         alice = self.alice
         bob = self.bob
+
+        start_key: bytes = randbytes(16)
+        self.logger.log(f'Alice and Bob have start key {start_key.hex()}')
+        alice.get_start_key(start_key)
+        bob.get_start_key(start_key)
 
         self.logger.log(f'Alice and Bob have {len(self.alice.keyBits)} bits\n')
 
