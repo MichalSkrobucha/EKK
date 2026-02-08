@@ -20,7 +20,7 @@ class SimControllerPanel(QWidget):
         # --- Layout ---
         self.create_layout()
 
-    def create_layout(self, min_val=10, max_val=500, default_val=100):
+    def create_layout(self, min_val=25, max_val=500, default_val=100):
         self.min_val = min_val
         self.max_val = max_val
 
@@ -38,9 +38,8 @@ class SimControllerPanel(QWidget):
         self.speed_slider.setSingleStep(10)
         self.speed_slider.setPageStep(10)
         slider_layout.addWidget(self.speed_slider)
-        self.speed_label = QLabel(f"{default_val} %")
+        self.speed_label = QLabel(f"x{float(default_val/100)}")
         slider_layout.addWidget(self.speed_label)
-        self.speed_slider.valueChanged.connect(self.sig_speed.emit)
         self.speed_slider.valueChanged.connect(self.handle_speed_change)
 
         playback_layout = QHBoxLayout()
@@ -70,11 +69,12 @@ class SimControllerPanel(QWidget):
         controller_layout.addStretch(stretch=2)
         self.setLayout(controller_layout)
 
-    def handle_speed_change(self, value, step=100):
+    def handle_speed_change(self, value, step=25):
         rounded_val = round(value / step) * step
         if self.speed_slider.value() != rounded_val:
             self.speed_slider.setValue(min(max(self.min_val, rounded_val), self.max_val))
-            self.speed_label.setText(f"{rounded_val} %")
+            self.speed_label.setText(f"x{float(rounded_val/100)}")
+            self.sig_speed.emit(rounded_val)
 
     def on_play_clicked(self):
         self.is_running = not self.is_running

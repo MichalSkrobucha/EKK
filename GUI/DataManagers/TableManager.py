@@ -12,7 +12,9 @@ class TableManager:
             "Bob hits": [],
             "Key bits": [],
             "Eve bases": [],
-            "Eve bits": []
+            "Eve bits": [],
+            "Alice key bits": [],
+            "Bob key bits": []
         }
 
     def clear(self):
@@ -37,6 +39,9 @@ class TableManager:
 
         e_bits = getattr(eve, 'bits', []) if eve else []
         e_bases = getattr(eve, 'bases', []) if eve else []
+
+        a_key = getattr(alice, 'key_bits', [])
+        b_key = getattr(bob, 'key_bits', [])
 
         max_len = max(len(a_bits), len(b_bits))
 
@@ -106,6 +111,15 @@ class TableManager:
 
             self.data["Bob hits"].append(match_symbol)
             self.data["Key bits"].append(key_bit)
+
+            if i < len(a_key):
+                self.data["Alice key bits"].append(a_key[i])
+            else:
+                self.data["Alice key bits"].append("")
+            if i < len(b_key):
+                self.data["Bob key bits"].append(b_key[i])
+            else:
+                self.data["Bob key bits"].append("")
 
     def get_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame(self.data)

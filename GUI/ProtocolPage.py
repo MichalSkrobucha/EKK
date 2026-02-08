@@ -41,8 +41,9 @@ class ProtocolPage(QWidget):
         self.analysis_view = AnalysisView(protocol_name, sim_manager_class, parent=self)
 
         self.horiz_tabs.addTab(self.sim_view, "SIMULATION")
-        self.horiz_tabs.addTab(self.tab_view, "TABLE")
-        self.horiz_tabs.addTab(self.analysis_view, "ANALYSIS")
+        if protocol_name != "MAC":
+            self.horiz_tabs.addTab(self.tab_view, "TABLE")
+            self.horiz_tabs.addTab(self.analysis_view, "ANALYSIS")
 
         self.side_panel = SimLogsView(protocol_name, parent=self)
 

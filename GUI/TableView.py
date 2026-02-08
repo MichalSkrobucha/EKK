@@ -19,7 +19,9 @@ class TableView(QWidget):
             "Bob hits",
             "Key bits",
             "Eve bases",
-            "Eve bits"
+            "Eve bits",
+            "Alice key bits",
+            "Bob key bits"
         ]
 
         self.row_labels = [
@@ -27,6 +29,7 @@ class TableView(QWidget):
             "Bob: Base", "Bob: Bit", "Bob: Match",
             "Raw Key",
             "Eve: Base", "Eve: Bit",
+            "Alice: Key", "Bob: Key"
         ]
 
         self.setup_ui()
