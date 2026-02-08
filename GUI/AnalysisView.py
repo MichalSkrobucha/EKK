@@ -20,8 +20,8 @@ from style import COLORS
 
 
 class AnalysisView(QWidget):
-    sig_start_eve = pyqtSignal(int)
-    sig_start_sweep = pyqtSignal(str, list, str, list, int)
+    sig_start_eve = pyqtSignal(int, int)
+    sig_start_sweep = pyqtSignal(int, str, list, str, list, int)
 
     def __init__(self, protocol_name, sim_manager_cls, parent=None):
         super().__init__(parent)
@@ -110,6 +110,16 @@ class AnalysisView(QWidget):
         self.update_ui_mode()
 
     def create_input_widgets(self):
+        # Bits
+        self.n_bits = QWidget()
+        l_bits = QVBoxLayout(self.n_bits)
+        l_bits.setContentsMargins(0, 0, 0, 0)
+        l_bits.addWidget(QLabel("Key length (Bits):"))
+        self.spin_bits = QSpinBox()
+        self.spin_bits.setRange(5, 100000)
+        self.spin_bits.setValue(100)
+        l_bits.addWidget(self.spin_bits)
+
         # ---  Eve Inputs ---
         self.wid_eve = QWidget()
         l_eve = QVBoxLayout(self.wid_eve)
@@ -141,6 +151,7 @@ class AnalysisView(QWidget):
         self.spin_avg.setValue(5)
         l_hm.addWidget(self.spin_avg)
 
+        self.params_layout.addWidget(self.n_bits)
         self.params_layout.addWidget(self.wid_eve)
         self.params_layout.addWidget(self.wid_heatmap)
 
@@ -213,10 +224,11 @@ class AnalysisView(QWidget):
         mode = self.combo_mode.currentIndex()
 
         if mode == 0:  # Eve
-            self.sig_start_eve.emit(self.spin_trials.value())
+            self.sig_start_eve.emit(self.spin_bits.value(), self.spin_trials.value())
 
         elif mode == 1:  # Dampening vs Distance
             self.sig_start_sweep.emit(
+                self.spin_bits.value(),
                 "dumpening_per_km",
                 self._temp_params['y_vals'],
                 "channelLength",
@@ -226,6 +238,7 @@ class AnalysisView(QWidget):
 
         elif mode == 2:  # Base Transform vs Distance
             self.sig_start_sweep.emit(
+                self.spin_bits.value(),
                 "base_transform_per_km",
                 self._temp_params['y_vals'],
                 "channelLength",  # X
@@ -235,6 +248,7 @@ class AnalysisView(QWidget):
 
         elif mode == 3:  # Bob Error vs Efficiency
             self.sig_start_sweep.emit(
+                self.spin_bits.value(),
                 "bob.error",
                 self._temp_params['y_vals'],
                 "bob.efficiency",
@@ -288,7 +302,6 @@ class AnalysisView(QWidget):
         self.canvas.draw()
 
     def _beautify_label(self, label):
-        """Pomocnicza funkcja do ładniejszych opisów osi."""
         mapping = {
             "channelLength": "Distance [km]",
             "dumpening_per_km": "Dampening [dB/km]",

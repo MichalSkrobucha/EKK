@@ -23,11 +23,12 @@ class AnalysisWorker(QObject):
     def stop(self):
         self.is_running = False
 
-    def run_eve_analysis(self, n_trials: int):
+    def run_eve_analysis(self, n_bits, n_trials: int):
         self.is_running = True
         self.sig_log.emit(f"Starting Eve Analysis ({n_trials} trials)...")
 
         sim = self.SimManagerCls()
+        sim.sim_end = n_bits
         sim.qberThreshhold = 1
         results = []
         total_steps = n_trials * 2
@@ -60,7 +61,7 @@ class AnalysisWorker(QObject):
         self.sig_finished.emit()
         self.is_running = False
 
-    def run_parameter_sweep(self, param1_name: str, param1_vals: list,
+    def run_parameter_sweep(self, n_bits, param1_name: str, param1_vals: list,
                             param2_name: str, param2_vals: list,
                             n_avg: int):
 
@@ -68,6 +69,7 @@ class AnalysisWorker(QObject):
         self.sig_log.emit(f"Starting Sweep: {param1_name} vs {param2_name}...")
 
         sim = self.SimManagerCls()
+        sim.sim_end = n_bits
         sim.qberThreshhold = 1
         sim.ifEve = False
 

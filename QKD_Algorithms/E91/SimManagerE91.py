@@ -16,7 +16,7 @@ class SimManagerE91(SimManager):
 
     BASES_ALICE = list(cfg.e91.alice_bases.keys())
     BASES_BOB = list(cfg.e91.bob_bases.keys())
-    BASES_EVE = list(cfg.e91.eve_bases.keys()) # TODO?? Add eve bases text field
+    BASES_EVE = list(cfg.e91.eve_bases.keys())
     BASES_DICT = cfg.e91.bases_dict
 
     p: float = 1.0
@@ -47,6 +47,22 @@ class SimManagerE91(SimManager):
 
         super().__init__(None, alice, bob, eve, logger, "E91")
 
+    @override
+    def clear_simManager(self) -> None:
+        """
+        Empties all lists
+        """
+        self.alice.clearLists()
+        self.bob.clearLists()
+        self.eve.clearLists()
+        self.channel_alice.clearLists()
+        self.channel_bob.clearLists()
+        self.channel_eve.clearLists()
+        self.source.clearLists()
+
+        self.sim_step = 0
+        self.logger.reset_logger()
+
     def simLoop(self):
         """
         Simulates QKD (du-uh)
@@ -69,8 +85,8 @@ class SimManagerE91(SimManager):
                         f'> Base transform per km {self.base_transform_per_km}\n'
                         f'> QBER treshhold: {self.qberThreshhold}\n'
                         f'> If Eve is present: {self.ifEve}\n'
-                        f'> Alice bases: {self.BASES_ALICE}\n'
-                        f'> Bob bases: {self.BASES_BOB}\n')
+                        f'> Alice bases: {cfg.e91.alice_bases.values()}\n'
+                        f'> Bob bases: {cfg.e91.bob_bases.values()}\n')
 
     def sim_next_step(self):
         self.logger.set_time(self.sim_step)
@@ -83,6 +99,12 @@ class SimManagerE91(SimManager):
         elif self.sim_step == self.sim_end:
             self.logger.msg(f"=====================")
             self._sim_analysis_step()
+        elif self.sim_step == self.sim_end + 1:
+            if self.S >= self.S_Threshhold:
+                self._run_error_correction()
+                self._run_privacy_amplification()
+            else:
+                self.logger.log('Transmission won\'t be continued')
         else:
             self.is_running = False
             return
@@ -138,12 +160,6 @@ class SimManagerE91(SimManager):
         print("--- TEORETYCZNIE ---")
         print("____________________\n")
         self._theoretical_result()
-
-        if self.S >= self.S_Threshhold:
-            self._run_error_correction()
-            self._run_privacy_amplification()
-        else:
-            print('Transmission won\'t be continued')
 
     def _analyze_results(self):  # Eksperymentalnie liczona nierówność Bella
         """
