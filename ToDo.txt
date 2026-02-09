@@ -1,5 +1,2 @@
-* Authentication Analysis ~ M
-
-
 * Analysis ~ N
  ** Remove Zero-Division-Error
