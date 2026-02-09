@@ -2,8 +2,8 @@ import pandas as pd
 
 
 class TableManager:
-    def __init__(self):
-        # Inicjalizacja pustych list
+    def __init__(self, protocol_name):
+        self.protocol_name = protocol_name
         self.data = {
             "Alice bits": [],
             "Alice bases": [],
@@ -12,16 +12,14 @@ class TableManager:
             "Bob hits": [],
             "Key bits": [],
             "Eve bases": [],
-            "Eve bits": [],
-            "Alice key bits": [],
-            "Bob key bits": []
+            "Eve bits": []
         }
 
     def clear(self):
         for key in self.data:
             self.data[key] = []
 
-    def update_from_simulation(self, sim_manager, protocol_name):
+    def update_from_simulation(self, sim_manager):
         """
         Pobiera PEŁNE listy z SimManagera.
         ProtocolPage decyduje ile z tego wyświetlić.
@@ -32,16 +30,27 @@ class TableManager:
         bob = sim_manager.bob
         eve = getattr(sim_manager, 'eve', None)
 
-        a_bits = getattr(alice, 'bits', [])
-        a_bases = getattr(alice, 'bases', [])
-        b_bits = getattr(bob, 'bits', [])
-        b_bases = getattr(bob, 'bases', [])
+        if self.protocol_name == "E91":
+            a_bits = [entry['bit'] for entry in alice.results]
+            b_bits = [entry['bit'] for entry in bob.results]
+        else:
+            a_bits = getattr(alice, 'bits', [])
+            b_bits = getattr(bob, 'bits', [])
+
+        if self.protocol_name == "SARG04":
+            a_bases = getattr(alice, 'sendBases', [])
+            b_bases = getattr(bob, 'bases', [])
+        elif self.protocol_name == "E91":
+            a_bases = [entry['base'] for entry in alice.results]
+            b_bases = [entry['base'] for entry in bob.results]
+        else:
+            a_bases = getattr(alice, 'bases', [])
+            b_bases = getattr(bob, 'bases', [])
+
+
 
         e_bits = getattr(eve, 'bits', []) if eve else []
         e_bases = getattr(eve, 'bases', []) if eve else []
-
-        a_key = getattr(alice, 'key_bits', [])
-        b_key = getattr(bob, 'key_bits', [])
 
         max_len = max(len(a_bits), len(b_bits))
 
@@ -94,7 +103,7 @@ class TableManager:
             else:
                 self.data["Eve bases"].append("")
 
-            # --- MATCH ---
+            # --- MATCH (Raw Key on the fly) ---
             curr_a_base = self.data["Alice bases"][-1]
             curr_b_base = self.data["Bob bases"][-1]
             curr_b_bit = self.data["Bob bits"][-1]
@@ -111,15 +120,6 @@ class TableManager:
 
             self.data["Bob hits"].append(match_symbol)
             self.data["Key bits"].append(key_bit)
-
-            if i < len(a_key):
-                self.data["Alice key bits"].append(a_key[i])
-            else:
-                self.data["Alice key bits"].append("")
-            if i < len(b_key):
-                self.data["Bob key bits"].append(b_key[i])
-            else:
-                self.data["Bob key bits"].append("")
 
     def get_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame(self.data)

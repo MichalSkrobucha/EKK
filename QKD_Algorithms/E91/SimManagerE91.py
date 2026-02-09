@@ -100,6 +100,9 @@ class SimManagerE91(SimManager):
             self.logger.msg(f"=====================")
             self._sim_analysis_step()
         elif self.sim_step == self.sim_end + 1:
+            self.alice.prepareForErrorCorrection()
+            self.bob.prepareForErrorCorrection()
+        elif self.sim_step == self.sim_end + 2:
             if self.S >= self.S_Threshhold:
                 self._run_error_correction()
                 self._run_privacy_amplification()
@@ -114,6 +117,7 @@ class SimManagerE91(SimManager):
     def _sim_transmition_step(self):
         # Generating pair
         if self.eveMode < 0:
+            self.source.n = 2
             photon_A, photon_B = self.source.generate()
             self.channel_alice.send([photon_A])
             self.channel_bob.send([photon_B])
@@ -121,6 +125,7 @@ class SimManagerE91(SimManager):
             self.alice.receive()
             self.bob.receive()
         else:
+            self.source.n = 3
             photon_A, photon_B, photon_E = self.source.generate()
             self.channel_alice.send([photon_A])
             self.channel_bob.send([photon_B])
@@ -152,13 +157,13 @@ class SimManagerE91(SimManager):
                     pass
 
     def _sim_analysis_step(self):
-        print("\n________________________")
-        print("--- EKSPERYMENTALNIE ---")
-        print("________________________")
+        self.logger.log("\n________________________")
+        self.logger.log("--- EKSPERYMENTALNIE ---")
+        self.logger.log("________________________")
         self._analyze_results()
-        print("\n____________________")
-        print("--- TEORETYCZNIE ---")
-        print("____________________\n")
+        self.logger.log("\n____________________")
+        self.logger.log("--- TEORETYCZNIE ---")
+        self.logger.log("____________________\n")
         self._theoretical_result()
 
     def _analyze_results(self):  # Eksperymentalnie liczona nierówność Bella
@@ -207,9 +212,9 @@ class SimManagerE91(SimManager):
             case _:
                 self.eve.sieve()
 
-        print(f"\nWygenerowano surowy klucz o długości: {len(raw_key_alice)} bitów")
-        print(f"Klucz Alicji: {raw_key_alice}")
-        print(f"Klucz Boba:   {raw_key_bob}")
+        self.logger.log(f"\nWygenerowano surowy klucz o długości: {len(raw_key_alice)} bitów")
+        self.logger.log(f"Klucz Alicji: {raw_key_alice}")
+        self.logger.log(f"Klucz Boba:   {raw_key_bob}")
 
         self.alice.keyBits = raw_key_alice
         self.bob.keyBits = raw_key_bob
@@ -220,8 +225,11 @@ class SimManagerE91(SimManager):
             if a != b:
                 err += 1
 
-        self.qber = err / len(raw_key_alice)
-        print(f'QBER: {self.qber :.4f}')
+        if len(raw_key_alice) != 0:
+            self.qber = err / len(raw_key_alice)
+        else:
+            self.qber = 0
+        self.logger.log(f'QBER: {self.qber:.4f}')
 
         # Wzór na E: E = (N_same - N_diff) / (N_same + N_diff)
         def get_E(idx_a, idx_b):
@@ -241,17 +249,17 @@ class SimManagerE91(SimManager):
         # S = |E(A1, B1) - E(A1, B3) + E(A3, B1) + E(A3, B3)|
         S = abs(E_A0_B1 - E_A0_B3 + E_A2_B1 + E_A2_B3)
 
-        print("\n--- Test Nierówności Bella (CHSH) ---")
-        print(f"E(A0, B1) = {E_A0_B1:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[1]}")
-        print(f"E(A0, B3) = {E_A0_B3:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[3]}")
-        print(f"E(A2, B1) = {E_A2_B1:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[1]}")
-        print(f"E(A2, B3) = {E_A2_B3:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[3]}")
-        print(f"Wartość parametru S = {S:.4f}")
+        self.logger.log("\n--- Test Nierówności Bella (CHSH) ---")
+        self.logger.log(f"E(A0, B1) = {E_A0_B1:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[1]}")
+        self.logger.log(f"E(A0, B3) = {E_A0_B3:.4f}    Bases: {self.BASES_DICT[0]}, {self.BASES_DICT[3]}")
+        self.logger.log(f"E(A2, B1) = {E_A2_B1:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[1]}")
+        self.logger.log(f"E(A2, B3) = {E_A2_B3:.4f}    Bases: {self.BASES_DICT[2]}, {self.BASES_DICT[3]}")
+        self.logger.log(f"Wartość parametru S = {S:.4f}")
 
         if S > self.S_Threshhold:
-            print(">> SUKCES: Nierówność Bella złamana! (Bezpieczeństwo potwierdzone)")
+            self.logger.log(">> SUKCES: Nierówność Bella złamana! (Bezpieczeństwo potwierdzone)")
         else:
-            print(">> OSTRZEŻENIE: Brak kwantowych korelacji lub zbyt duży szum.")
+            self.logger.log(">> OSTRZEŻENIE: Brak kwantowych korelacji lub zbyt duży szum.")
 
         self.S = S
 
@@ -270,12 +278,12 @@ class SimManagerE91(SimManager):
 
         S_theoretical = abs(E_A0_B1 - E_A0_B3 + E_A2_B1 + E_A2_B3)
 
-        print(f"E(A0, B1)  = {E_A0_B1:.4f}")
-        print(f"E(A0, B3) = {E_A0_B3:.4f}")
-        print(f"E(A2, B1) = {E_A2_B1:.4f}")
-        print(f"E(A2, B3) = {E_A2_B3:.4f}")
+        self.logger.log(f"E(A0, B1)  = {E_A0_B1:.4f}")
+        self.logger.log(f"E(A0, B3) = {E_A0_B3:.4f}")
+        self.logger.log(f"E(A2, B1) = {E_A2_B1:.4f}")
+        self.logger.log(f"E(A2, B3) = {E_A2_B3:.4f}")
 
-        print(f"Teoretyczne S = {S_theoretical:.4f}\n")
+        self.logger.log(f"Teoretyczne S = {S_theoretical:.4f}\n")
 
         # def get_S_for_pair(base_idx_1, base_idx_2):
         #     val_A1_B1 = get_theoretical_E(self.alice.bases[base_idx_1], self.bob.bases[base_idx_1])
@@ -353,7 +361,7 @@ class SimManagerE91(SimManager):
                 bases_dict = {i: float(val) for i, val in enumerate(parts, start=1)}
                 self.alice.bases = bases_dict
 
-        elif key == "bob_bases":  # TODO
+        elif key == "bob_bases":
             if hasattr(self.alice, 'bases'):
                 self.bob.bases = value
 

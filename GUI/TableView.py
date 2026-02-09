@@ -19,17 +19,14 @@ class TableView(QWidget):
             "Bob hits",
             "Key bits",
             "Eve bases",
-            "Eve bits",
-            "Alice key bits",
-            "Bob key bits"
+            "Eve bits"
         ]
 
         self.row_labels = [
             "Alice: Bit", "Alice: Base",
             "Bob: Base", "Bob: Bit", "Bob: Match",
             "Raw Key",
-            "Eve: Base", "Eve: Bit",
-            "Alice: Key", "Bob: Key"
+            "Eve: Base", "Eve: Bit"
         ]
 
         self.setup_ui()
@@ -44,24 +41,17 @@ class TableView(QWidget):
 
         self.result_table.setVerticalHeaderLabels(self.row_labels)
         self.result_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-
         self.result_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
-
         self.result_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
         v_header = self.result_table.verticalHeader()
-        # v_header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         v_header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         v_header.setDefaultSectionSize(50)
-
         v_header.setSectionsClickable(True)
         v_header.sectionClicked.connect(self.result_table.selectRow)
 
         h_header = self.result_table.horizontalHeader()
         h_header.setDefaultSectionSize(40)
-
-        self.result_table.setSortingEnabled(False)
-
         h_header.setSectionsClickable(True)
         h_header.sectionClicked.connect(self.result_table.selectColumn)
 
@@ -73,6 +63,9 @@ class TableView(QWidget):
             return
 
         num_steps = df.shape[0]
+
+        scrollbar = self.result_table.horizontalScrollBar()
+        was_at_end = (scrollbar.value() == scrollbar.maximum())
 
         if self.result_table.columnCount() != num_steps:
             self.result_table.setColumnCount(num_steps)
@@ -86,7 +79,7 @@ class TableView(QWidget):
 
             series = df[key]
             for col_idx, value in enumerate(series):
-                if pd.isna(value):
+                if pd.api.types.is_scalar(value) and pd.isna(value):
                     text_val = ""
                 else:
                     text_val = str(value)
@@ -103,12 +96,8 @@ class TableView(QWidget):
                     self._style_item(item, key, text_val)
                     self.result_table.setItem(row_idx, col_idx, item)
 
-        if num_steps > 0:
-            last_col = num_steps - 1
+        if num_steps > 0 and was_at_end:
             self.result_table.scrollToItem(self.result_table.item(0, num_steps - 1))
-            self.result_table.scrollToItem(self.result_table.item(0, last_col))
-            self.result_table.setCurrentCell(0, last_col)
-            self.result_table.selectColumn(last_col)
 
     def _style_item(self, item, key, text_val):
         """Metoda pomocnicza do kolorowania"""

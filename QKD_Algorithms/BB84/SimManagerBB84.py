@@ -37,7 +37,7 @@ class SimManagerBB84(SimManager):
         eve_has_bits = len([1 for e in eve_bits if e != -1])
         eve_correct_bits = len([1 for (a, e) in zip(alice_bits, eve_bits) if a == e])
 
-        print(
+        self.logger.log(
             f'Alice and Bob have {len(alice_bits)} each and Bob has {bob_correct_bits} correct ({bob_correct_bits / len(alice_bits):.4f})\n'
             f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
 

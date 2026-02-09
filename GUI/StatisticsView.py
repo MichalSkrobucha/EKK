@@ -158,7 +158,8 @@ class StatisticsView(QWidget):
             stages = [
                 ("End Transmission", 0),
                 ("CHSH Analysis", 1),
-                ("Finalize (EC+PA)", 2)
+                ("Error Correction", 2),
+                ("Privacy Amplification", 3)
             ]
 
         row, col = 0, 0

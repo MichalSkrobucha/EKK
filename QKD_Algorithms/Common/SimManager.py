@@ -160,9 +160,6 @@ class SimManager(ABC):
         alice = self.alice
         bob = self.bob
 
-        alice.prepareForErrorCorrection()
-        bob.prepareForErrorCorrection()
-
         # korekcja błędów
         # Alicja i Bob wymieniają się informacjami, ewa słucha (w teorii - brak wywołań funkcji)
 
@@ -218,7 +215,6 @@ class SimManager(ABC):
                                 f'{'All parities match' if matching_parities else 'There are parities that do not match - next round of recursive correction'}\n')
 
             bob.flatten_blocks()
-
             # permutacja odwrotna
             alice.unpermute()
             bob.unpermute()

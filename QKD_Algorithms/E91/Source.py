@@ -11,7 +11,6 @@ class Source:
 
     def generate(self) -> tuple[Photon, ...]:
         r = random()
-
         if r <= self.p:
             # entangled
             shared_context = SharedState(n=self.n, amp0=1.0 / sqrt(2), amp1=1.0 / sqrt(2))

@@ -274,13 +274,26 @@ class Bob(ABC):
         self.keyBits += [0] * kb_pad
 
         self.max_length = len(self.keyBits) // 2
-        self.start_length = ceil(1 / (self.qber + 1 / len(self.keyBits)))
+        if len(self.keyBits) > 0:
+            self.start_length = ceil(1 / (self.qber + 1 / len(self.keyBits)))
+        else:
+            self.start_length = 1
 
     def get_alice_permutation(self, permutation: list[int]):
         """Bob odbiera permutację Alicji i dzieli permutuje swój klucz"""
         self.permutation = permutation
 
-        self.keyBits = [self.keyBits[i] for i in permutation]
+        current_len = len(self.keyBits)
+        if current_len == 0:
+            self.keyBits = [0] * len(permutation)
+        else:
+            self.keyBits = [self.keyBits[i] if i < current_len else 0 for i in permutation]
+
+        self.max_length = len(self.keyBits) // 2
+        if len(self.keyBits) > 0:
+            self.start_length = ceil(1 / (self.qber + 1 / len(self.keyBits)))
+        else:
+            self.start_length = 1
 
     def split_into_blocks(self) -> None:
         """Bob dzieli bity na bloki"""
@@ -330,10 +343,20 @@ class Bob(ABC):
                        range(0, len(self.keyBits), 4)]]]))).digest()
 
     def unpermute(self) -> None:
-        bits: list[int] = [0 for _ in self.keyBits]
+        # Zabezpieczenie
+        if len(self.keyBits) != len(self.permutation):
+            self.logger.error(
+                f"Critical: Key length mismatch in unpermute. Key: {len(self.keyBits)}, Perm: {len(self.permutation)}")
+            if len(self.keyBits) < len(self.permutation):
+                self.keyBits += [0] * (len(self.permutation) - len(self.keyBits))
+
+        bits: list[int] = [0 for _ in range(len(self.permutation))]
 
         for (new, old) in enumerate(self.permutation):
-            bits[old] = self.keyBits[new]
+            if new < len(self.keyBits):
+                bits[old] = self.keyBits[new]
+            else:
+                bits[old] = 0
 
         self.keyBits = bits
 
