@@ -75,7 +75,7 @@ class ProtocolPage(QWidget):
         self.sim_view.sig_forward_settings.connect(sim_manager.update_setting)
 
         self.gui_refresh_timer = QTimer()
-        self.gui_refresh_timer.setInterval(33)
+        self.gui_refresh_timer.setInterval(0)
         self.gui_refresh_timer.timeout.connect(self.trigger_data_processing)
         self.gui_refresh_timer.start()
 

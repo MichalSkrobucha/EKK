@@ -28,19 +28,6 @@ class SimManagerBB84(SimManager):
         while self.is_running:
             self.sim_next_step()
 
-    def checkCorrectness(self):
-        alice_bits = self.alice.sievedBits
-        bob_bits = self.bob.sievedBits
-        eve_bits = self.eve.sieved_bits
-
-        bob_correct_bits = len([1 for (a, b) in zip(alice_bits, bob_bits) if a == b])
-        eve_has_bits = len([1 for e in eve_bits if e != -1])
-        eve_correct_bits = len([1 for (a, e) in zip(alice_bits, eve_bits) if a == e])
-
-        self.logger.log(
-            f'Alice and Bob have {len(alice_bits)} each and Bob has {bob_correct_bits} correct ({bob_correct_bits / len(alice_bits):.4f})\n'
-            f'Eve has {eve_has_bits} bits ({eve_has_bits / len(alice_bits):.4f}), and in (total) has correct {eve_correct_bits} ({eve_correct_bits / len(alice_bits):.4f})')
-
     def sim_next_step(self):
         self.logger.set_time(self.sim_step)
         if self.sim_step == 0:
