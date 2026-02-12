@@ -261,8 +261,11 @@ class Bob(ABC):
         self.logger.log(f"Bob is calculating QBER: {self.qber}")
 
     def prepareForErrorCorrection(self):
+        sievedBits = []
+
         if self.keyBits:
             sievedBits = list(self.keyBits)
+            self.keyBits.clear()
         else:
             sievedBits = list(self.sievedBits)
 

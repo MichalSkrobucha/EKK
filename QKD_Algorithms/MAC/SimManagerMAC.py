@@ -92,7 +92,7 @@ class SimManagerMAC(SimManager):
         fakes: list[tuple[int, int]] = self.eve.forge_mtags(messages_to_forge)
         self.logger.log(f'Eve attempted tag forgery')
 
-        self.logger.log('Message | Correct Tag | Eve\'s tag | Comparison')
+        self.logger.log('Message | Eve\'s Tag | Correct tag | Comparison')
 
         succ: int = 0
 
@@ -116,7 +116,6 @@ class SimManagerMAC(SimManager):
 
         elif key == "t_exp":
             self.t_exp = value
-
 
         elif key == "mts_given":
             self.given_mts = value
