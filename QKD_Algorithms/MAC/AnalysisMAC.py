@@ -1,171 +1,151 @@
-from .ChannelMAC import ChannelMAC as channel
-from .HashMAC import HashMAC as Hash
-from .AliceMAC import AliceMAC as alice
-from .BobMAC import BobMAC as bob
-from .EveMAC import EveMAC as eve
-from random import choice, sample
-import statistics
+from MAC.HashMAC import HashMAC as Hash
+from MAC.EveMAC import EveMAC as eve
 
+from random import choice, sample, shuffle
+
+import statistics
+from itertools import count
 import pandas as pd
 
 
 class AnalysisMAC:
+
     def __init__(self):
         pass
 
-    def run_analysis(self):
-        f_name = 'mac_comprehensive_analysis.xlsx'
+    # ... (reszta importów bez zmian)
 
-        print(f"Rozpoczynam kompleksową analizę. Wyniki trafią do: {f_name}")
+    def run_analysis(self, start_m=2, save_threshold=4):
+        general_data = []
+        detailed_data = []
 
-        with pd.ExcelWriter(f_name, engine='openpyxl') as writer:
-            print("\n[1/2] Generowanie ogólnego podsumowania (stałe given_mts=2)...")
-            summary_data = []
+        num_range = 7
 
-            fixed_given_mts = 2
-            fixed_mts_to_forge = 1
+        print(f"Rozpoczynam analizę ciągłą od m_exp={start_m}. Zapis plików od m_exp={save_threshold}.")
 
-            for m_exp in range(2, 8):
-                M = 2 ** m_exp
-                print(f"  -> Przetwarzanie M_exp={m_exp}...")
+        # count(start_m) tworzy nieskończony iterator: start_m, start_m+1, start_m+2...
+        for m_exp in count(start_m):
 
-                for t_exp in range(2, m_exp + 1):
-                    try:
-                        hashes_count = self.getPossibleHashesCount(m_exp, t_exp)
-                        if hashes_count == 0:
-                            continue
+            for t_exp in range(2, m_exp + 1):
+                print(f'\n[Ongoing] Analysis for m_exp = {m_exp}, t_exp = {t_exp}')
 
-                        avg_left = self.getNarrowDistr(m_exp, t_exp, fixed_given_mts, n1=5, n2=5)
-                        total_p, best_p = self.getGuessProbabilities(m_exp, t_exp, fixed_given_mts, fixed_mts_to_forge,
-                                                                     n=15)
-                        avg_iters = self.getItersNeededToNarrowTo1(m_exp, t_exp, n=10)
+                possible_hashes = Hash.find_eq_prob_hashes(2 ** m_exp, 2 * t_exp)
+                possible_hashes_count = len(possible_hashes)
+                avg_hashes_remaining = {
+                    num: self.getNarrowDegree(m_exp, t_exp, num, possible_hashes=set(possible_hashes)) for num in
+                    range(1, num_range)}
+                guess_probs = {
+                    num: self.getGuessProbabilities(m_exp, t_exp, num, 3 * num, possible_hashes=set(possible_hashes))
+                    for num in
+                    range(1, num_range)}
+                iters_to_sure = self.getItersNeededToNarrowTo1(m_exp, t_exp, possible_hashes=set(possible_hashes))
 
-                        summary_data.append({
-                            "M_exp": m_exp,
-                            "M (Size)": M,
-                            "T_exp": t_exp,
-                            "T (Tags)": 2 ** t_exp,
-                            "Possible Hashes": hashes_count,
-                            "Avg Hashes Left (mts=2)": avg_left,
-                            "Crack Success (Best Guess)": best_p,
-                            "Avg Msgs to Break": avg_iters
-                        })
-                    except Exception as e:
-                        print(f"    [!] Error M={M}, T=2^{t_exp}: {e}")
+                print(f'\tPossible hashes: {possible_hashes_count}')
+                print(f'\tEve needs {iters_to_sure} iterations to break')
+                print(f'\tEve has _ hashes remaining based on how pairs she was given: {avg_hashes_remaining}')
+                print(f'\tEve has (best, total) guess rate for how many pairs she was given: {guess_probs}')
 
-            if summary_data:
-                df_summary = pd.DataFrame(summary_data)
-                df_summary.to_excel(writer, sheet_name="General_Summary", index=False)
-                print("  -> Arkusz 'General_Summary' zapisany.")
+                general_data.append({
+                    "M_exp": m_exp,
+                    "T_exp": t_exp,
+                    "Possible Hashes": possible_hashes_count,
+                    "Avg Msgs to Break": iters_to_sure
+                })
 
-            print("\n[2/2] Generowanie szczegółowych rozbić (zmienne parametry ataku)...")
-            detailed_data = []
+                for num in range(1, num_range):
+                    detailed_data.append({
+                        "M_exp": m_exp,
+                        "T_exp": t_exp,
+                        "Given MTs": num,
+                        "MTs to fake": 3 * num,
+                        "Hashes reaming": avg_hashes_remaining[num],
+                        "Guess rate": guess_probs[num][0],
+                        "Best guess": guess_probs[num][1],
+                    })
 
-            for m_exp in range(2, 8):
-                M = 2 ** m_exp
-                print(f"  -> Analiza szczegółowa dla M_exp={m_exp}...")
+            if m_exp >= save_threshold:
+                current_file_name = f'QKD_Algorithms\\MAC\\AuthAnalysisMAC_{m_exp}.xlsx'
+                print(f'--> Saving snapshot to: {current_file_name}...')
 
-                for t_exp in range(2, m_exp + 1):
-                    if self.getPossibleHashesCount(m_exp, t_exp) == 0:
-                        continue
+                try:
+                    with pd.ExcelWriter(current_file_name, engine='openpyxl') as writer:
+                        pd.DataFrame(general_data).to_excel(writer, sheet_name="General", index=False)
+                        pd.DataFrame(detailed_data).to_excel(writer, sheet_name="Detailed", index=False)
+                    print(f'--> Save complete.')
+                except Exception as e:
+                    print(f"!!! Error saving file {current_file_name}: {e}")
 
-                    mts_checkpoints = sorted(list(set([
-                        2,
-                        int(M ** 0.5),
-                        int(M / 2)
-                    ])))
-                    mts_checkpoints = [x for x in mts_checkpoints if 2 <= x < M]
-
-                    for given_mts in mts_checkpoints:
-                        for mts_to_forge in [1, 3]:
-                            try:
-
-                                avg_left = self.getNarrowDistr(m_exp, t_exp, given_mts, n1=5, n2=5)
-                                total_p, best_p = self.getGuessProbabilities(m_exp, t_exp, given_mts, mts_to_forge,
-                                                                             n=15)
-
-                                detailed_data.append({
-                                    "M_exp": m_exp,
-                                    "M (Size)": M,
-                                    "T_exp": t_exp,
-                                    "T (Tags)": 2 ** t_exp,
-                                    "Eavesdropped Msgs": given_mts,
-                                    "Forgeries Attempted": mts_to_forge,
-                                    "Avg Hashes Left": avg_left,
-                                    "Success Rate (Total)": total_p,
-                                    "Success Rate (Best Guess)": best_p
-                                })
-                            except Exception as e:
-                                pass
-
-            if detailed_data:
-                df_detailed = pd.DataFrame(detailed_data)
-                df_detailed.to_excel(writer, sheet_name="Detailed_Breakdown", index=False)
-                print("  -> Arkusz 'Detailed_Breakdown' zapisany.")
-
-        print(f"\n[!] Proces zakończony pomyślnie. Plik: {f_name}")
-
-    # (M, T) -> (count_of_eq_prob_hashes) // close_to_eq
+    # (M, T) -> (count_of_eq_prob_hashes)
     def getPossibleHashesCount(self, m_exp: int, t_exp: int):
-        c = channel(m_exp, t_exp, 0, 0, 0)
-        return len(c.possible_hashes)
+        return len(Hash.find_eq_prob_hashes(2 ** m_exp, 2 ** t_exp))
 
     # (M, T, given_mts) / (M, T, iters) -> (how_many_possible_hashes_left)
-    def getNarrowDistr(self, m_exp: int, t_exp: int, given_mts: int, n1=10, n2=10):
-        c = channel(m_exp, t_exp, 0, 0, 0)
-
+    def getNarrowDegree(self, m_exp: int, t_exp: int, given_mts: int, how_many_unique_hashes_tested: int = -1,
+                        possible_hashes=None):
         M = 2 ** m_exp
         T = 2 ** t_exp
+        p = Hash.next_prime(M)
 
-        possible_hashes: list[tuple[int, int]] = list(c.find_possible_hashes())
-        p = c.p
+        if how_many_unique_hashes_tested < 0:
+            how_many_unique_hashes_tested = 2 * m_exp
+
+        if possible_hashes is None:
+            possible_hashes: list[tuple[int, int]] = list(Hash.find_eq_prob_hashes(M, T, p=p))
+
         message_space = list(range(M))
 
         outer_averages = []
 
-        true_hashes_to_test = [choice(possible_hashes) for _ in range(n1)]
+        shuffle(possible_hashes)
+        true_hashes_to_test = possible_hashes[:how_many_unique_hashes_tested]
+
+        trial_results = []
 
         for (q, r) in true_hashes_to_test:
-            trial_results = []
-            h_true = hash(M, T, q, r, p)  #
+            h_true = Hash(M, T, q, r, p)
 
-            for _ in range(n2):
-                e = eve(M, T, p, possible_hashes)
+            e = eve(M, T, p, possible_hashes)
 
-                sampled_messages = sample(message_space, given_mts)
+            if given_mts > len(message_space):
+                given_mts = len(message_space)
 
-                for m in sampled_messages:
-                    t = h_true(m)
-                    e.eavesdrop((m, t))
+            sampled_messages = sample(message_space, given_mts)
 
-                e.narrow_possible_hashes()
-                trial_results.append(len(e.possible_hashes))
+            for m in sampled_messages:
+                t = h_true(m)
+                e.eavesdrop((m, t))
 
-            outer_averages.append(statistics.mean(trial_results))
+            e.narrow_possible_hashes()
+            trial_results.append(len(e.possible_hashes))
 
-        final_avg = statistics.mean(outer_averages)
-        print(f"Average hashes remaining for M={M}, T={T}, mts={given_mts}: {final_avg}")
-        return final_avg
+        mean = statistics.mean(trial_results)
+        return mean
 
     # (M, T, given_mts, mts_to_forge) -> (guess_probability, best_guess_probability)
-    def getGuessProbabilities(self, m_exp: int, t_exp: int, given_mts: int, mts_to_forge: int, n: int = 100):
-        c = channel()
+    def getGuessProbabilities(self, m_exp: int, t_exp: int, given_mts: int, mts_to_forge: int,
+                              how_many_unique_hashes_tested: int = -1, possible_hashes=None):
+        if how_many_unique_hashes_tested < 0:
+            how_many_unique_hashes_tested = 2 * m_exp
+
         M = 2 ** m_exp
         T = 2 ** t_exp
-        c = channel(m_exp, t_exp, 0, 0, 0)
 
-        p = c.p
-        all_valid_hashes = c.find_possible_hashes()
+        p = Hash.next_prime(M)
+        if possible_hashes is None:
+            possible_hashes: list[tuple[int, int]] = list(Hash.find_eq_prob_hashes(M, T, p=p))
         message_space = list(range(M))
 
         total_success_rate = []
         best_guess_success = []
 
-        for _ in range(n):
-            q_true, r_true = choice(all_valid_hashes)
-            h_true = hash(M, T, q_true, r_true, p)
+        for _ in range(how_many_unique_hashes_tested):
+            (q_true, r_true) = choice(possible_hashes)
+            h_true = Hash(M, T, q_true, r_true, p)
 
-            e = eve(M, T, p, all_valid_hashes)
+            e = eve(M, T, p, possible_hashes)
+
+            if given_mts > len(message_space):
+                given_mts = len(message_space)
 
             eavesdropped_msgs = sample(message_space, given_mts)
             for m in eavesdropped_msgs:
@@ -181,6 +161,7 @@ class AnalysisMAC:
             fakes = e.forge_mtags(to_forge)
 
             results = []
+
             for i, (m_fake, t_fake) in enumerate(fakes):
                 is_correct = (t_fake == h_true(m_fake))
                 results.append(is_correct)
@@ -196,31 +177,26 @@ class AnalysisMAC:
         return avg_total_prob, avg_best_prob
 
     # (M, T) -> (iters_needed_to_narrow_to_1) -> (number_of_eavesdropped_mts)
-    def getItersNeededToNarrowTo1(self, m_exp: int, t_exp: int, n: int = 30):
-        import statistics
-        from random import choice, sample
-        from auth_channel import channel
-        from auth_eve import eve
-        from auth_hash import hash
+    def getItersNeededToNarrowTo1(self, m_exp: int, t_exp: int, how_many_unique_hashes_tested: int = -1,
+                                  possible_hashes=None):
+        if how_many_unique_hashes_tested < 0:
+            how_many_unique_hashes_tested = 2 * m_exp
 
-        # Inicjalizacja kanału w celu wyznaczenia parametrów p oraz zbioru poprawnych haszy
-        c = channel()
         M = 2 ** m_exp
         T = 2 ** t_exp
-        # setupValues_andClear automatycznie oblicza p i generuje initial possible_hashes
-        c = channel(m_exp, t_exp, 0, 0, 0)
 
-        p = c.p
-        all_valid_hashes = c.find_possible_hashes()
+        p = Hash.next_prime(M)
+        if possible_hashes is None:
+            possible_hashes: list[tuple[int, int]] = list(Hash.find_eq_prob_hashes(M, T, p=p))
         message_space = list(range(M))
 
         messages_needed_results = []
 
-        for _ in range(n):
-            q_true, r_true = choice(all_valid_hashes)
-            h_true = hash(M, T, q_true, r_true, p)
+        for _ in range(how_many_unique_hashes_tested):
+            q_true, r_true = choice(possible_hashes)
+            h_true = Hash(M, T, q_true, r_true, p)
 
-            e = eve(M, T, p, all_valid_hashes)
+            e = eve(M, T, p, possible_hashes)
 
             shuffled_msgs = sample(message_space, len(message_space))
 
@@ -236,6 +212,11 @@ class AnalysisMAC:
             else:
                 messages_needed_results.append(len(message_space))
 
-        avg_mts = statistics.mean(messages_needed_results) if messages_needed_results else 0
+        avg_mts = statistics.mean(messages_needed_results) if len(messages_needed_results) else 0
 
         return avg_mts
+
+
+if __name__ == '__main__':
+    a = AnalysisMAC()
+    a.run_analysis()

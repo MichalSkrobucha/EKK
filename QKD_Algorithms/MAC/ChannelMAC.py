@@ -5,6 +5,7 @@ from MAC.HashMAC import HashMAC as Hash
 from random import choice, shuffle
 
 # ALL LOGIC MOVED TO SIMMANAGER_MAC
+# BASICALLY USELESS CLASS (KEPT FOR SENTIMENT)
 
 
 class ChannelMAC:

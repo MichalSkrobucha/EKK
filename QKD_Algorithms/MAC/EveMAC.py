@@ -52,11 +52,11 @@ class EveMAC:
                     possible_qrs.add((q, r))
 
             self.possible_hashes &= possible_qrs
-            print(
-                f'After comparing mt-pair n.{ctr} of mts Eve narrow count possible hashes to {len(self.possible_hashes)}')
+            # print(
+            #     f'After comparing mt-pair n.{ctr} of mts Eve narrow count possible hashes to {len(self.possible_hashes)}')
 
             if len(self.possible_hashes) == 1:
-                return
+                return ctr
 
             ctr += 1
 

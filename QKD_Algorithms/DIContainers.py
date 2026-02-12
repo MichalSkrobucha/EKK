@@ -1,6 +1,5 @@
 from dependency_injector import containers, providers
 
-import E91.PhotonE91
 from Logger import SimLogger
 # --- Common Dependencies ---
 from Common.Photon import Photon
